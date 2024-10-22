@@ -1,4 +1,4 @@
-from .IndexCalculator import IndexCalculator
+from .index_calculator import IndexCalculator
 
 
 class SMA(IndexCalculator):

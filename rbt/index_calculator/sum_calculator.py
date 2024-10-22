@@ -1,7 +1,7 @@
-from .IndexCalculator import IndexCalculator
+from .index_calculator import IndexCalculator
 
 
-class Sum(IndexCalculator):
+class SumCalculator(IndexCalculator):
     def __init__(self, period):
         super().__init__(period)
         self.result = 0  # Initialize result to zero to represent the sum

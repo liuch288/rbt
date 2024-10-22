@@ -1,6 +1,6 @@
 import unittest
 
-from IndexCalculator import *
+from rbt.index_calculator import *
 
 
 class TestSMA(unittest.TestCase):
@@ -41,7 +41,7 @@ class TestSum(unittest.TestCase):
     def test_initialization(self):
         """测试初始化"""
         period = 5
-        sum_calculator = Sum(period)
+        sum_calculator = SumCalculator(period)
         self.assertEqual(sum_calculator.period, period)
         self.assertEqual(sum_calculator.result, 0)
         self.assertEqual(len(sum_calculator.data), 0)
@@ -49,23 +49,23 @@ class TestSum(unittest.TestCase):
     def test_update_with_less_than_period(self):
         """测试更新数据，数据点少于周期"""
         period = 5
-        sum_calculator = Sum(period)
+        sum_calculator = SumCalculator(period)
         for i in range(1, 4):
-            sum_calculator.update(i)
-            self.assertEqual(sum_calculator.result, sum(range(1, i + 1)))
+            res = sum_calculator.update(i)
+            self.assertEqual(res, sum(range(1, i + 1)))
 
     def test_update_with_exactly_period(self):
         """测试更新数据，数据点等于周期"""
         period = 3
-        sum_calculator = Sum(period)
+        sum_calculator = SumCalculator(period)
         for i in range(1, period + 1):
-            sum_calculator.update(i)
-        self.assertEqual(sum_calculator.result, sum(range(1, period + 1)))
+            res = sum_calculator.update(i)
+        self.assertEqual(res, sum(range(1, period + 1)))
 
     def test_update_with_more_than_period(self):
         """测试更新数据，数据点超过周期"""
         period = 3
-        sum_calculator = Sum(period)
+        sum_calculator = SumCalculator(period)
         for i in range(1, 7):
             sum_calculator.update(i)
         # 最后三个数据点的和应该是 4 + 5 + 6 = 15
@@ -74,7 +74,7 @@ class TestSum(unittest.TestCase):
     def test_reset(self):
         """测试重置"""
         period = 3
-        sum_calculator = Sum(period)
+        sum_calculator = SumCalculator(period)
         for i in range(1, 4):
             sum_calculator.update(i)
         sum_calculator.reset()
