@@ -7,7 +7,7 @@ class PnlEstimateUnit(object):
         self.watching_time = watching_time
         self.watching_mds = watching_mds
 
-    def estimate(self, data):
+    def estimate(self, data) -> dict:
         """
         评估交易规则在给定行情数据上的损益
         :param data: DataFrame，包含行情数据
