@@ -31,3 +31,4 @@ class IndexCalculator:
         """
         self.data.clear()
         self.result = None
+        self.data_count = 0
