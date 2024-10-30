@@ -8,18 +8,23 @@ class BisideQuotePEU(PnlEstimateUnit):
         watching_mds: int = None,
         lb: int = 1,
         la: int = 1,
-        tick_size: float = 0.005
+        tick_size: float = 0.005,
+        name: str = None,
     ):
-        super().__init__(watching_time, watching_mds)
+        super().__init__(watching_time, watching_mds, name)
         self.lb = lb
         self.la = la
         self.tick_size = tick_size
-        self.digits = len(str(tick_size).split('.')[1])
+        self.digits = len(str(tick_size).split(".")[1])
 
     def estimate(self, future_data) -> dict:
         init_md = future_data.iloc[0]
-        buy_order_price = round(init_md["bid_px1"] - (self.lb - 1) * self.tick_size, self.digits)
-        sell_order_price = round(init_md["ask_px1"] + (self.la - 1) * self.tick_size, self.digits)
+        buy_order_price = round(
+            init_md["bid_px1"] - (self.lb - 1) * self.tick_size, self.digits
+        )
+        sell_order_price = round(
+            init_md["ask_px1"] + (self.la - 1) * self.tick_size, self.digits
+        )
 
         buy_order_hits = future_data[future_data["ask_px1"] <= buy_order_price]
         buy_order_executed = len(buy_order_hits) > 0

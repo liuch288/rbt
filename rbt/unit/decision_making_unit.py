@@ -1,6 +1,9 @@
 class DecisionMakingUnit:
-    def __init__(self):
-        pass
+    def __init__(self, name: str = None):
+        if name is None:
+            self.name = self.__class__.__name__
+        else:
+            self.name = name
 
     def on_market_data(self, new_data):
         """

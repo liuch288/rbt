@@ -2,8 +2,8 @@ from rbt.unit import DecisionMakingUnit
 
 
 class SpreadDMU(DecisionMakingUnit):
-    def __init__(self, tick_size: float = 0.005):
-        super().__init__()
+    def __init__(self, tick_size: float = 0.005, name: str = None):
+        super().__init__(name)
         self.tick_size = tick_size
 
     def make_decision(self, new_data) -> dict:

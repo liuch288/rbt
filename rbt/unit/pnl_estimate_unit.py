@@ -1,11 +1,18 @@
 class PnlEstimateUnit(object):
-    def __init__(self, watching_time: float = None, watching_mds: int = None):
+    def __init__(
+        self, watching_time: float = None, watching_mds: int = None, name: str = None
+    ):
         if watching_time is not None and watching_mds is not None:
             raise ValueError(
                 "Do not input watching_time and watching_mds simultaneously"
             )
         self.watching_time = watching_time
         self.watching_mds = watching_mds
+        # set name
+        if name is None:
+            self.name = self.__class__.__name__
+        else:
+            self.name = name
 
     def estimate(self, data) -> dict:
         """
