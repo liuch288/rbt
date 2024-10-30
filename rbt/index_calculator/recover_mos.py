@@ -159,3 +159,4 @@ class RecoverMos(IndexCalculator):
             self.result = recover_mo_core(
                 self.last_lob, new_data, self.tick_size, self.hands, True
             )
+        self.last_lob = new_data
