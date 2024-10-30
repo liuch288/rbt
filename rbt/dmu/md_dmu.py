@@ -1,4 +1,4 @@
-from rbt.unit import DecisionMakingUnit
+from .decision_making_unit import DecisionMakingUnit
 
 
 class MdDMU(DecisionMakingUnit):
