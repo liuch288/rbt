@@ -1,14 +1,16 @@
 import cvxpy as cp
 import numpy as np
 
+from .index_calculator import IndexCalculator
 
-def recover_mos(
+
+def recover_mo_core(
     last_lob, cur_lob, tick_size: float, hands: int, split_unknown: bool
-):
+) -> list:
     trade_notional = cur_lob["trade_notional"]
     trade_size = cur_lob["trade_sz"]
     if trade_size == 0:
-        return None
+        return []
     avg_price = trade_notional / trade_size / hands
     tick_notional = round(tick_size * hands)
     last_mid_px = (last_lob["bid_px1"] + last_lob["ask_px1"]) / 2
@@ -70,7 +72,7 @@ def recover_mos(
     problem.solve(solver=cp.CPLEX, verbose=False)
     if problem.status != "optimal":
         print("failed")
-        return None
+        return []
 
     # process results
     decomposed_vol = [round(v) for v in x.value]
@@ -141,3 +143,19 @@ def recover_mos(
         all_orders.sort(key=lambda x: x["price"])
 
     return all_orders
+
+
+class RecoverMos(IndexCalculator):
+    def __init__(self, tick_size, hands):
+        super().__init__(1)
+        self.last_lob = None
+        self.tick_size = tick_size
+        self.hands = hands
+
+    def calculate(self, new_data):
+        if self.last_lob is None:
+            self.result = []
+        else:
+            self.result = recover_mo_core(
+                self.last_lob, new_data, self.tick_size, self.hands, True
+            )
