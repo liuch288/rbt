@@ -1,4 +1,3 @@
-import datetime
 import unittest
 
 from rbt.index_calculator import *
