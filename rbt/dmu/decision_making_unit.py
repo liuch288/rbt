@@ -13,7 +13,7 @@ class DecisionMakingUnit:
         """
         return self.make_decision(new_data)
 
-    def make_decision(self, new_data) -> dict:
+    def make_decision(self, new_md, previous_result: dict = {}) -> dict:
         """
         根据最新的市场数据做出交易决策
         :return: 包含交易决策的字典

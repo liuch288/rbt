@@ -6,7 +6,7 @@ class SpreadDMU(DecisionMakingUnit):
         super().__init__(name)
         self.tick_size = tick_size
 
-    def make_decision(self, new_data) -> dict:
+    def make_decision(self, new_data, *args, **kwargs) -> dict:
         spread = new_data["ask_px1"] - new_data["bid_px1"]
         spread = round(spread / self.tick_size)
         return {"spread": spread}
