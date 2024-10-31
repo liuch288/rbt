@@ -36,7 +36,7 @@ class Strategy(object):
             cur_dmu_results = {}
             for dmu in self.dmus:
                 dmu_name = dmu.name
-                result = dmu.on_market_data(new_md)
+                result = dmu.on_market_data(new_md, cur_dmu_results)
                 for key in result.keys():
                     cur_dmu_results[f"{dmu_name}_{key}"] = result[key]
             self.dmu_results[cur_time] = cur_dmu_results
