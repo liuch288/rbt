@@ -1,4 +1,4 @@
-from rbt.index_calculator import IndexCalculator
+from .index_calculator import IndexCalculator
 
 
 class FirstHit(IndexCalculator):

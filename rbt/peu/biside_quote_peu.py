@@ -17,7 +17,7 @@ class BisideQuotePEU(PnlEstimateUnit):
         self.tick_size = tick_size
         self.digits = len(str(tick_size).split(".")[1])
 
-    def estimate(self, future_data) -> dict:
+    def estimate(self, future_data, *args, **kwargs) -> dict:
         init_md = future_data.iloc[0]
         buy_order_price = round(
             init_md["bid_px1"] - (self.lb - 1) * self.tick_size, self.digits
