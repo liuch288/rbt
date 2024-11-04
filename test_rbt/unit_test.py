@@ -1,6 +1,6 @@
 import unittest
 
-from rbt.index_calculator import *
+from rbt.ic import *
 
 
 class TestSMA(unittest.TestCase):
