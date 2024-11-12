@@ -1,20 +1,44 @@
 import datetime
 import pandas as pd
 
+from .ic import RecoverMos
+from .util import get_instrument_info
+
+
 class MdEngine(object):
+    """
+    用户继承MdEngine类，修改构造函数和prepare_data函数。
+    在prepare_data函数中，用户需要将数据读取出来，改变列名为特定格式（必须包含sym、bid_px等列），并以Timestamp作为index。
+    在prepare_data完成后，要出发_register_raw_md函数来保存处理好的数据表。
+    如果数据表中不包含exec_after列，将自动进行市价单拆分工作。
+    """
+
     def __init__(self) -> None:
         self.date = None
         self.raw_md = None
-        self.current_index = 0 
+        self.current_index = 0
 
-    def prepare_data(self, date: datetime.date):
+    def prepare_data(self, sym: str, date: datetime.date):
         raise NotImplementedError("Subclasses should implement this method.")
 
     def _register_raw_md(self, raw_md):
         if not isinstance(raw_md.index, pd.DatetimeIndex):
             raise ValueError("raw_md must be indexed by datetime.")
         self.raw_md = raw_md.sort_index().copy()
-        self.current_index = 0  
+        self.current_index = 0
+        if "exec_after" not in self.raw_md.columns:
+            self.__recover_mo()
+
+    def __recover_mo(self):
+        all_mos = []
+        sym = self.raw_md.iloc[0]["sym"]
+        recover_mo_ic = RecoverMos(sym=sym)
+        recover_mo_ic.update(self.raw_md.iloc[0])
+        for i in range(1, len(self.raw_md)):
+            cur_mo = recover_mo_ic.update(self.raw_md.iloc[i])
+            all_mos.append(cur_mo)
+        all_mos.append([])
+        self.raw_md["exec_after"] = all_mos
 
     def get_current_md(self):
         return self.raw_md.iloc[self.current_index]
@@ -25,13 +49,15 @@ class MdEngine(object):
         if period is not None:
             cur_time = self.raw_md.iloc[self.current_index].name
             end_time = cur_time + pd.DateOffset(seconds=period)
-            return self.raw_md[(self.raw_md.index >= cur_time) & (self.raw_md.index <= end_time)]
+            return self.raw_md[
+                (self.raw_md.index >= cur_time) & (self.raw_md.index <= end_time)
+            ]
         elif mds is not None:
             end_index = self.current_index + mds + 1
-            return self.raw_md.iloc[self.current_index:end_index]
+            return self.raw_md.iloc[self.current_index : end_index]
         else:
             raise ValueError("One of 'period' or 'mds' must be provided.")
-        
+
     def finish_current_md(self) -> bool:
         self.current_index += 1
         return self.current_index < len(self.raw_md)
