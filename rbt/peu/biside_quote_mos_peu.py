@@ -53,6 +53,9 @@ class BisideQuoteMosPEU(PnlEstimateUnit):
         tick_size: float = 0.005,
         name: str = None,
     ):
+        """
+        lb、la是以一档为基准的价格，取1时是指在一档挂单，0时则为比一档更优一个报价单位的价格下单，其他是在一档的基础上加减lx-1个报价单位
+        """
         super().__init__(watching_time, watching_mds, name)
         self.lb = lb
         self.la = la
@@ -97,7 +100,23 @@ class BisideQuoteMosPEU(PnlEstimateUnit):
         buy_order_executed = False
         sell_order_executed = False
         for i in range(future_data_len - 3):
-            exec_after = future_data.iloc[i]["exec_after"]
+            cur_md = future_data.iloc[i]
+            # 首先根据盘口价格判定，看是否能立即成交 (根据盘口价格判定成交时不管量的情况)
+            if not buy_order_executed:
+                cur_ask1 = cur_md["ask_px1"]
+                if cur_ask1 <= buy_order_price:
+                    inventory += buy_order.volume
+                    pnl -= buy_order.volume * buy_order_price
+                    buy_order_executed = True
+            if not sell_order_executed:
+                cur_bid1 = cur_md["bid_px1"]
+                if cur_bid1 >= sell_order_price:
+                    inventory -= sell_order.volume
+                    pnl += sell_order.volume * sell_order_price
+                    sell_order_executed = True
+
+            # 然后根据后续市价单判定
+            exec_after = cur_md["exec_after"]
             for exec in exec_after:
                 if not buy_order_executed:
                     res = buy_order.check_execution(exec)
