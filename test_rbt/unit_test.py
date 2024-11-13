@@ -83,40 +83,48 @@ class TestSumCalculator(unittest.TestCase):
 
 
 class TestRecoverMos(unittest.TestCase):
-    def test_recover(self):
-        last_lob = {
-            "bid_sz1": 4,
-            "bid_px1": 108.94,
-            "ask_px1": 108.95,
-            "ask_sz1": 107,
-            "bid_sz2": 9,
-            "bid_px2": 108.93,
-            "ask_px2": 108.96,
-            "ask_sz2": 101,
-            "bid_sz3": 70,
-            "bid_px3": 108.92,
-            "ask_px3": 108.97,
-            "ask_sz3": 103,
-            "bid_sz4": 39,
-            "bid_px4": 108.91,
-            "ask_px4": 108.98,
-            "ask_sz4": 650,
-            "bid_sz5": 175,
-            "bid_px5": 108.9,
-            "ask_px5": 108.99,
-            "ask_sz5": 292,
-        }
-        cur_lob = {
-            "bid_px1": 108.92,
-            "ask_px1": 108.93,
-            "bid_px2": 108.91,
-            "ask_px2": 108.94,
-            "trade_sz": 24.0,
-            "trade_notional": 26143600.0,
-        }
+    last_lob = {
+        "bid_sz1": 4,
+        "bid_px1": 108.94,
+        "ask_px1": 108.95,
+        "ask_sz1": 107,
+        "bid_sz2": 9,
+        "bid_px2": 108.93,
+        "ask_px2": 108.96,
+        "ask_sz2": 101,
+        "bid_sz3": 70,
+        "bid_px3": 108.92,
+        "ask_px3": 108.97,
+        "ask_sz3": 103,
+        "bid_sz4": 39,
+        "bid_px4": 108.91,
+        "ask_px4": 108.98,
+        "ask_sz4": 650,
+        "bid_sz5": 175,
+        "bid_px5": 108.9,
+        "ask_px5": 108.99,
+        "ask_sz5": 292,
+    }
+    cur_lob = {
+        "bid_px1": 108.92,
+        "ask_px1": 108.93,
+        "bid_px2": 108.91,
+        "ask_px2": 108.94,
+        "trade_sz": 24.0,
+        "trade_notional": 26143600.0,
+    }
+
+    def test_recover_tick_size(self):
         recover = RecoverMos(0.01, 10000)
-        self.assertEqual(recover.update(last_lob), [])
-        result = recover.update(cur_lob)
+        self.assertEqual(recover.update(self.last_lob), [])
+        result = recover.update(self.cur_lob)
+        self.assertEqual(len(result), 3)
+
+    def test_recover_sym(self):
+        recover = RecoverMos(sym="tl2412")
+        self.assertEqual(recover.tick_size, 0.01)
+        self.assertEqual(recover.update(self.last_lob), [])
+        result = recover.update(self.cur_lob)
         self.assertEqual(len(result), 3)
 
 

@@ -2,6 +2,7 @@ import cvxpy as cp
 import numpy as np
 
 from .index_calculator import IndexCalculator
+from ..util import get_instrument_info
 
 
 def recover_mo_core(
@@ -146,11 +147,17 @@ def recover_mo_core(
 
 
 class RecoverMos(IndexCalculator):
-    def __init__(self, tick_size, hands):
+    def __init__(self, tick_size: float=0.005, hands: int=10000, sym: str = None):
         super().__init__(1)
         self.last_lob = None
-        self.tick_size = tick_size
-        self.hands = hands
+        if sym is None:
+            self.tick_size = tick_size
+            self.hands = hands
+        else:
+            info = get_instrument_info(sym)
+            self.tick_size = info["tick_size"]
+            self.hands = info["hands"]
+
 
     def calculate(self, new_data):
         if self.last_lob is None:
