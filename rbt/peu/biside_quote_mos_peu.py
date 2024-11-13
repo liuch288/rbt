@@ -104,7 +104,7 @@ class BisideQuoteMosPEU(PnlEstimateUnit):
                     if res["volume"] > 0:
                         inventory += res["volume"]
                         buy_order_executed = True
-                        pnl -= res["cash_flow"]
+                        pnl += res["cash_flow"]
                 if not sell_order_executed:
                     res = sell_order.check_execution(exec)
                     if res["volume"] > 0:
@@ -125,6 +125,7 @@ class BisideQuoteMosPEU(PnlEstimateUnit):
                         pnl += cur_md["bid_px1"] * inventory
                     else:
                         pnl -= cur_md["ask_px1"] * inventory
+                    break
 
         cur_result = {
             "pnl": pnl,
