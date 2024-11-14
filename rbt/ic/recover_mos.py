@@ -163,7 +163,10 @@ class RecoverMos(IndexCalculator):
         if self.last_lob is None:
             self.result = []
         else:
-            self.result = recover_mo_core(
-                self.last_lob, new_data, self.tick_size, self.hands, True
-            )
+            if self.last_lob.name.hour < 12 and new_data.name.hour > 12:
+                self.result = []
+            else:
+                self.result = recover_mo_core(
+                    self.last_lob, new_data, self.tick_size, self.hands, True
+                )
         self.last_lob = new_data
