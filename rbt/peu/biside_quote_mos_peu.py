@@ -143,7 +143,7 @@ class BisideQuoteMosPEU(PnlEstimateUnit):
                     if inventory > 0:
                         pnl += cur_md["bid_px1"] * inventory
                     else:
-                        pnl -= cur_md["ask_px1"] * inventory
+                        pnl += cur_md["ask_px1"] * inventory
                     break
 
         cur_result = {
