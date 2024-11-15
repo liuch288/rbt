@@ -168,14 +168,14 @@ class RecoverMos(IndexCalculator):
             self.result = []
         else:
             if self.last_lob.name.hour < 12 and new_data.name.hour > 12:
-                self.result = []
-            else:
                 try:
                     self.result = recover_mo_core(
                         self.last_lob, new_data, self.tick_size, self.hands, True
                     )
                 except:
-                    print(self.last_lob)
-                    print("-----------------")
-                    print(new_data)
+                    self.result = []
+            else:
+                self.result = recover_mo_core(
+                    self.last_lob, new_data, self.tick_size, self.hands, True
+                )
         self.last_lob = new_data
