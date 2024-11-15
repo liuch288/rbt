@@ -21,9 +21,13 @@ def recover_mo_core(
         avg_price_boundary = (int(avg_price / tick_size) + 2) * tick_size
 
     # price vector
-    min_price = min(last_lob["bid_px2"], avg_price_boundary, cur_lob["bid_px2"])
+    last_bid2 = 9999999 if last_lob["bid_px2"] == 0.0 else last_lob["bid_px2"]
+    cur_bid2 = 9999999 if cur_lob["bid_px2"] == 0.0 else cur_lob["bid_px2"]
+    min_price = min(last_bid2, avg_price_boundary, cur_bid2)
     min_price_notional = round(min_price * hands)
-    max_price = max(last_lob["ask_px2"], avg_price_boundary, cur_lob["ask_px2"])
+    last_ask2 = 0 if last_lob["ask_px2"] == 0.0 else last_lob["ask_px2"]
+    cur_ask2 = 0 if cur_lob["ask_px2"] == 0.0 else cur_lob["ask_px2"]
+    max_price = max(last_ask2, avg_price_boundary, cur_ask2)
     max_price_notional = round(max_price * hands)
     bids = list(
         range(min_price_notional, round(last_lob["bid_px1"] * hands) + 1, tick_notional)
@@ -166,7 +170,12 @@ class RecoverMos(IndexCalculator):
             if self.last_lob.name.hour < 12 and new_data.name.hour > 12:
                 self.result = []
             else:
-                self.result = recover_mo_core(
-                    self.last_lob, new_data, self.tick_size, self.hands, True
-                )
+                try:
+                    self.result = recover_mo_core(
+                        self.last_lob, new_data, self.tick_size, self.hands, True
+                    )
+                except:
+                    print(self.last_lob)
+                    print("-----------------")
+                    print(new_data)
         self.last_lob = new_data
