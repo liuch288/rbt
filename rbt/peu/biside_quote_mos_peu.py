@@ -98,7 +98,9 @@ class BisideQuoteMosPEU(PnlEstimateUnit):
         future_data_len = len(future_data)
         # 此处-3是因为最后3行要用于判定平仓价格
         buy_order_executed = False
+        buy_order_exec_time = None
         sell_order_executed = False
+        sell_order_exec_time = None
         for i in range(future_data_len - 3):
             cur_md = future_data.iloc[i]
             # 首先根据盘口价格判定，看是否能立即成交 (根据盘口价格判定成交时不管量的情况)
@@ -108,28 +110,33 @@ class BisideQuoteMosPEU(PnlEstimateUnit):
                     inventory += buy_order.volume
                     pnl -= buy_order.volume * buy_order_price
                     buy_order_executed = True
+                    buy_order_exec_time = cur_md.name
             if not sell_order_executed:
                 cur_bid1 = cur_md["bid_px1"]
                 if cur_bid1 >= sell_order_price:
                     inventory -= sell_order.volume
                     pnl += sell_order.volume * sell_order_price
                     sell_order_executed = True
+                    sell_order_exec_time = cur_md.name
 
             # 然后根据后续市价单判定
-            exec_after = cur_md["exec_after"]
-            for exec in exec_after:
+            for exec in cur_md["exec_after"]:
                 if not buy_order_executed:
                     res = buy_order.check_execution(exec)
                     if res["volume"] > 0:
                         inventory += res["volume"]
-                        buy_order_executed = True
                         pnl += res["cash_flow"]
+                        if buy_order.volume <= 0:
+                            buy_order_executed = True
+                            buy_order_exec_time = cur_md.name
                 if not sell_order_executed:
                     res = sell_order.check_execution(exec)
                     if res["volume"] > 0:
                         inventory -= res["volume"]
-                        sell_order_executed = True
                         pnl += res["cash_flow"]
+                        if sell_order.volume <= 0:
+                            sell_order_executed = True
+                            sell_order_exec_time = cur_md.name
             if buy_order_executed and sell_order_executed:
                 break
         # 平仓
@@ -143,12 +150,14 @@ class BisideQuoteMosPEU(PnlEstimateUnit):
                     if inventory > 0:
                         pnl += cur_md["bid_px1"] * inventory
                     else:
-                        pnl -= cur_md["ask_px1"] * inventory
+                        pnl += cur_md["ask_px1"] * inventory
                     break
 
         cur_result = {
             "pnl": pnl,
             "buy_order_executed": buy_order_executed,
+            "buy_order_exec_time": buy_order_exec_time,
             "sell_order_executed": sell_order_executed,
+            "sell_order_exec_time": sell_order_exec_time,
         }
         return cur_result
