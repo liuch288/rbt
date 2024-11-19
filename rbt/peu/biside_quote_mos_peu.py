@@ -104,11 +104,10 @@ class BisideQuoteMosPEU(PnlEstimateUnit):
         buy_order_exec_time = None
         sell_order_executed = False
         sell_order_exec_time = None
-        for i in range(future_data_len):
-            cur_md = future_data.iloc[i]
+        for cur_time, cur_md in future_data.iterrows():
             cur_bid1 = cur_md["bid_px1"]
             cur_ask1 = cur_md["ask_px1"]
-            time_diff = (cur_md.name - start_time).total_seconds()
+            time_diff = (cur_time - start_time).total_seconds()
             if time_diff <= self.order_maintaining_time:
                 # 首先根据盘口价格判定，看是否能立即成交 (根据盘口价格判定成交时不管量的情况)
                 if not buy_order_executed:
