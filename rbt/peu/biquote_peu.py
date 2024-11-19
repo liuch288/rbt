@@ -43,7 +43,7 @@ class Order(object):
         return {"volume": 0, "cash_flow": 0}
 
 
-class BisideQuoteMosPEU(PnlEstimateUnit):
+class BiquotePEU(PnlEstimateUnit):
     def __init__(
         self,
         order_maintaining_time: float = None,
