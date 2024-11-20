@@ -19,28 +19,28 @@ class Order(object):
     def check_execution(self, market_order: dict) -> dict:
         """
         market_order: {'side': 'sell', 'price': 102.09, 'volume': 14}
+        是否成交判定不需要关心市价单方向，只要成交价格在订单之外，则忽略；相同或更优，则考虑。
+        即，如果我后面的人在相同或更优的价位上发生了成交，则应该考虑这些成交量。
         return: {"volume": int, "cash_flow": float} cash_flow还需要乘以hands才能得到实际notional
         """
         # 如果当前订单已经完成，则直接返回0现金流
         if self.volume <= 0:
-            return {"volume": 0, "cash_flow": 0}
-        # 如果是同向订单，则不会发生成交
-        mo_direction = 1 if market_order["side"] == "buy" else -1
-        if mo_direction * self.direction == 1:
-            return {"volume": 0, "cash_flow": 0}
-        # 只有价格匹配，才会成交
-        if self.direction * (self.price - market_order["price"]) >= 0:
-            mo_vol = market_order["volume"]
-            if mo_vol <= self.volume_before_this_order:
-                self.volume_before_this_order -= mo_vol
-            else:
-                mo_vol -= self.volume_before_this_order
-                self.volume_before_this_order = 0
-                cur_exec = min(self.volume, mo_vol)
-                self.volume -= cur_exec
-                cash_flow = -1 * self.direction * self.price * cur_exec
-                return {"volume": cur_exec, "cash_flow": cash_flow}
-        return {"volume": 0, "cash_flow": 0}
+            return {"volume": 0, "cash_flow": 0.0}
+        # 如果市价单价格更差（例如本order为买单，新的成交价格更高），则无视
+        if (market_order["price"] - self.price) * self.direction > 0:
+            return {"volume": 0, "cash_flow": 0.0}
+        # 如果市价单价格与本单价格相同，则都考虑，不管方向（如果本单是买单，那理论上不应该有市价买单，除非本单已经被fill）
+        mo_vol = market_order["volume"]
+        if mo_vol <= self.volume_before_this_order:
+            self.volume_before_this_order -= mo_vol
+        else:
+            mo_vol -= self.volume_before_this_order
+            self.volume_before_this_order = 0
+            cur_exec = min(self.volume, mo_vol)
+            self.volume -= cur_exec
+            cash_flow = -1 * self.direction * self.price * cur_exec
+            return {"volume": cur_exec, "cash_flow": cash_flow}
+        return {"volume": 0, "cash_flow": 0.0}
 
 
 class BiquotePEU(PnlEstimateUnit):
