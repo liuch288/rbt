@@ -25,10 +25,10 @@ class Order(object):
         """
         # 如果当前订单已经完成，则直接返回0现金流
         if self.volume <= 0:
-            return {"volume": 0, "cash_flow": 0}
+            return {"volume": 0, "cash_flow": 0.0}
         # 如果市价单价格更差（例如本order为买单，新的成交价格更高），则无视
         if (market_order["price"] - self.price) * self.direction > 0:
-            return {"volume": 0, "cash_flow": 0}
+            return {"volume": 0, "cash_flow": 0.0}
         # 如果市价单价格与本单价格相同，则都考虑，不管方向（如果本单是买单，那理论上不应该有市价买单，除非本单已经被fill）
         mo_vol = market_order["volume"]
         if mo_vol <= self.volume_before_this_order:
@@ -40,6 +40,7 @@ class Order(object):
             self.volume -= cur_exec
             cash_flow = -1 * self.direction * self.price * cur_exec
             return {"volume": cur_exec, "cash_flow": cash_flow}
+        return {"volume": 0, "cash_flow": 0.0}
 
 
 class BiquotePEU(PnlEstimateUnit):
