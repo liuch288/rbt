@@ -109,7 +109,7 @@ class BiquoteClosePEU(PnlEstimateUnit):
                                 sell_order_exec_time = cur_md.name
                 if buy_order_executed and sell_order_executed:
                     break
-            # 第二部分时间：原价平仓
+            # 第二部分时间：原价平仓或止盈平仓
             elif time_diff < self.total_watching_time:
                 if inventory == 0:
                     break
@@ -119,9 +119,13 @@ class BiquoteClosePEU(PnlEstimateUnit):
                         if inventory > 0:
                             dir = -1
                             dir_str = "ask"
+                            price = max(price, cur_md["bid_px1"])
                         else:
                             dir = 1
                             dir_str = "bid"
+                            cur_ask1 = cur_md["ask_px1"]
+                            if cur_ask1 > 0.0:
+                                price = min(price, cur_ask1)
                         volume_before = 0
                         for i in range(1, 6):
                             if cur_md[f"{dir_str}_px{i}"] == price:
