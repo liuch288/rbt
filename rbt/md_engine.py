@@ -10,6 +10,7 @@ class MdEngine(object):
     用户继承MdEngine类，修改构造函数和prepare_data函数。
     在prepare_data函数中，用户需要将数据读取出来，改变列名为特定格式（必须包含sym、bid_px等列），并以Timestamp作为index。
     在prepare_data完成后，要出发_register_raw_md函数来保存处理好的数据表。
+    原始数据表raw_md中需要恢复出行情戳之前和之后的市价单，分别命名为exec_before和exec_after,
     如果数据表中不包含exec_after列，将自动进行市价单拆分工作。
     """
 
@@ -30,15 +31,15 @@ class MdEngine(object):
             self.__recover_mo()
 
     def __recover_mo(self):
-        all_mos = []
+        all_exec = []
         sym = self.raw_md.iloc[0]["sym"]
         recover_mo_ic = RecoverMos(sym=sym)
-        recover_mo_ic.update(self.raw_md.iloc[0])
-        for i in range(1, len(self.raw_md)):
-            cur_mo = recover_mo_ic.update(self.raw_md.iloc[i])
-            all_mos.append(cur_mo)
-        all_mos.append([])
-        self.raw_md["exec_after"] = all_mos
+        for _, cur_md in self.raw_md.iterrows():
+            cur_mo = recover_mo_ic.update(cur_md)
+            all_exec.append(cur_mo)
+        self.raw_md["exec_before"] = all_exec
+        all_exec.append([])
+        self.raw_md["exec_after"] = all_exec[1:]
 
     def get_current_md(self):
         return self.raw_md.iloc[self.current_index]
