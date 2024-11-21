@@ -10,6 +10,7 @@ class MdEngine(object):
     用户继承MdEngine类，修改构造函数和prepare_data函数。
     在prepare_data函数中，用户需要将数据读取出来，改变列名为特定格式（必须包含sym、bid_px等列），并以Timestamp作为index。
     在prepare_data完成后，要出发_register_raw_md函数来保存处理好的数据表。
+    原始数据表raw_md中需要恢复出行情戳之前和之后的市价单，分别命名为exec_before和exec_after,
     如果数据表中不包含exec_after列，将自动进行市价单拆分工作。
     """
 
