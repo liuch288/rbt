@@ -4,9 +4,9 @@ from ..util import get_instrument_info
 
 class MdDMU(DecisionMakingUnit):
     def __init__(self, sym: str, name: str = None):
+        super().__init__(name)
         info = get_instrument_info(sym)
         self.hands = info["hands"]
-        super().__init__(name)
 
     def make_decision(self, new_data, *args, **kwargs) -> dict:
         bid_px1 = new_data["bid_px1"]
