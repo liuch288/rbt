@@ -1,4 +1,4 @@
-from rbt.ic import SumIC
+from rbt.ic import SumCalculator
 from rbt.dmu import DecisionMakingUnit
 
 
@@ -22,8 +22,8 @@ class MoIntentionDMU(DecisionMakingUnit):
             minimum_vol: 主要方向的订单至少要达到多少才算 (以防只有1手买被当成主动买入)
         """
         super().__init__()
-        self.buy_vol_ic = SumIC(watch_mds)
-        self.sell_vol_ic = SumIC(watch_mds)
+        self.buy_vol_ic = SumCalculator(watch_mds)
+        self.sell_vol_ic = SumCalculator(watch_mds)
         self.ratio_threshold = ratio_threshold
         self.minimum_vol = minimum_vol
 
