@@ -4,3 +4,4 @@ dist
 rbt.egg-info
 tmp_test
 my_rbt
+*.pkl
