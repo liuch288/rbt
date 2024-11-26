@@ -5,7 +5,8 @@ class PriceSmoothIC(IndexCalculator):
         super().__init__(1)
         self.last_bid = 0.0
         self.last_ask = 0.0
-        self.has_hit_threshold = False  # 标记是否已经触发过阈值
+        self.bid_showing = 0.0
+        self.ask_showing = 0.0
 
     def calculate(self, new_data):
         # 如果变动次数回到0，则重置触发标记
@@ -21,5 +22,7 @@ class PriceSmoothIC(IndexCalculator):
 
     def reset(self):
         super().reset()
-        self.result = 0
-        self.has_hit_threshold = False  # 重置触发标记
+        self.last_bid = 0.0
+        self.last_ask = 0.0
+        self.bid_showing = 0.0
+        self.ask_showing = 0.0
