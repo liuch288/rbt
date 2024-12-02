@@ -39,13 +39,13 @@ class MoIntentionDMU(DecisionMakingUnit):
 
         hits = 0
         ratio = 0.0
-        if (all_buy > all_sell) & (all_buy > self.minimum_vol):
-            ratio = all_buy / (all_buy + all_sell)
+        all_trades = all_buy + all_sell
+        if all_trades > 0:
+            ratio = (all_buy - all_sell) / all_trades
+        if all_trades > self.minimum_vol:
             if ratio > self.ratio_threshold:
                 hits = 1
-        if (all_sell > all_buy) & (all_sell > self.minimum_vol):
-            ratio = -all_sell / (all_buy + all_sell)
-            if ratio < -self.ratio_threshold:
+            elif ratio < -self.ratio_threshold:
                 hits = -1
-
+                
         return {"hits": hits, "ratio": ratio}
