@@ -1,7 +1,7 @@
 from .index_calculator import IndexCalculator
 
 
-class FirstHit(IndexCalculator):
+class FirstHitIC(IndexCalculator):
     def __init__(self, threshold):
         super().__init__(1)
         self.threshold = abs(threshold)

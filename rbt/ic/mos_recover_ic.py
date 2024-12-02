@@ -150,7 +150,7 @@ def recover_mo_core(
     return all_orders
 
 
-class RecoverMos(IndexCalculator):
+class MosRecoverIC(IndexCalculator):
     def __init__(self, tick_size: float=0.005, hands: int=10000, sym: str = None):
         super().__init__(1)
         self.last_lob = None

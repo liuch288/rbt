@@ -34,7 +34,7 @@ class MdDMU(DecisionMakingUnit):
             "ask": ask_px1,
             "mid_smo": mid,
             "mean": mean_px,
-            "variance": std,
+            "std": std,
             "quantile": quantile,
             "ob_avg": ob_avg,
             "cum_avg": cum_avg,
