@@ -1,7 +1,7 @@
 from .index_calculator import IndexCalculator
 
 
-class SMA(IndexCalculator):
+class MeanIC(IndexCalculator):
     def __init__(self, period):
         super().__init__(period)
         self.sum = 0  # 累计值
