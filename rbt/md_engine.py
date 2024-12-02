@@ -1,7 +1,7 @@
 import datetime
 import pandas as pd
 
-from .ic import RecoverMos
+from .ic import MosRecoverIC
 from .util import get_instrument_info
 
 
@@ -33,7 +33,7 @@ class MdEngine(object):
     def __recover_mo(self):
         all_exec = []
         sym = self.raw_md.iloc[0]["sym"]
-        recover_mo_ic = RecoverMos(sym=sym)
+        recover_mo_ic = MosRecoverIC(sym=sym)
         for _, cur_md in self.raw_md.iterrows():
             cur_mo = recover_mo_ic.update(cur_md)
             all_exec.append(cur_mo)
