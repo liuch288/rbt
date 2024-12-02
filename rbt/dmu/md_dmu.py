@@ -10,14 +10,16 @@ class MdDMU(DecisionMakingUnit):
         self.hands = info["hands"]
         self.bid_filter = PriceSmoothIC()
         self.ask_filter = PriceSmoothIC()
-        self.variance_ic = VarianceIC(5)
-        self.mean_ic = MeanIC(5)
+        self.variance_ic = VarianceIC(120)
+        self.mean_ic = MeanIC(120)
 
     def make_decision(self, new_data, *args, **kwargs) -> dict:
         bid_px1 = new_data["bid_px1"]
         bid_sz1 = new_data["bid_sz1"]
         ask_px1 = new_data["ask_px1"]
         ask_sz1 = new_data["ask_sz1"]
+        cur_notional = new_data["trade_notional"]
+        cur_exec = new_data["trade_sz"]
         bid_smo = self.bid_filter.update(bid_px1)
         ask_smo = self.ask_filter.update(ask_px1)
         mid = (bid_smo + ask_smo) / 2
@@ -26,11 +28,11 @@ class MdDMU(DecisionMakingUnit):
         quantile = (mid - mean_px) / std if std > 1e-8 else 0
         ob_avg = (bid_px1 * ask_sz1 + ask_px1 * bid_sz1) / (bid_sz1 + ask_sz1)
         cum_avg = new_data["tot_notional"] / new_data["tot_sz"] / self.hands
-        exec_avg = new_data["trade_notional"] / new_data["trade_sz"] / self.hands
+        exec_avg = cur_notional / cur_exec / self.hands if cur_exec > 0 else 0
         return {
             "bid": bid_px1,
             "ask": ask_px1,
-            "mid": mid,
+            "mid_smo": mid,
             "mean": mean_px,
             "std": std,
             "quantile": quantile,
