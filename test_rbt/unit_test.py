@@ -5,31 +5,31 @@ from rbt.ic import *
 
 class TestSMA(unittest.TestCase):
     def test_initial_values(self):
-        sma = SMA(period=5)
+        sma = MeanIC(period=5)
         self.assertEqual(sma.result, None)
         self.assertEqual(len(sma.data), 0)
 
     def test_update_with_insufficient_data(self):
-        sma = SMA(period=5)
+        sma = MeanIC(period=5)
         sma.update(10)
         self.assertEqual(sma.result, 10)
         sma.update(20)
         self.assertEqual(sma.result, 15)
 
     def test_update_with_exact_period(self):
-        sma = SMA(period=5)
+        sma = MeanIC(period=5)
         for i in range(1, 6):
             sma.update(i)
         self.assertEqual(sma.result, 3)
 
     def test_update_with_more_than_period(self):
-        sma = SMA(period=5)
+        sma = MeanIC(period=5)
         for i in range(1, 10):
             sma.update(i)
         self.assertEqual(sma.result, 7)
 
     def test_reset(self):
-        sma = SMA(period=5)
+        sma = MeanIC(period=5)
         for i in range(1, 6):
             sma.update(i)
         sma.reset()
@@ -41,7 +41,7 @@ class TestSumCalculator(unittest.TestCase):
     def test_initialization(self):
         """测试初始化"""
         period = 5
-        sum_calculator = SumCalculator(period)
+        sum_calculator = SumIC(period)
         self.assertEqual(sum_calculator.period, period)
         self.assertEqual(sum_calculator.result, 0)
         self.assertEqual(len(sum_calculator.data), 0)
@@ -49,7 +49,7 @@ class TestSumCalculator(unittest.TestCase):
     def test_update_with_less_than_period(self):
         """测试更新数据，数据点少于周期"""
         period = 5
-        sum_calculator = SumCalculator(period)
+        sum_calculator = SumIC(period)
         for i in range(1, 4):
             res = sum_calculator.update(i)
             self.assertEqual(res, sum(range(1, i + 1)))
@@ -57,7 +57,7 @@ class TestSumCalculator(unittest.TestCase):
     def test_update_with_exactly_period(self):
         """测试更新数据，数据点等于周期"""
         period = 3
-        sum_calculator = SumCalculator(period)
+        sum_calculator = SumIC(period)
         for i in range(1, period + 1):
             res = sum_calculator.update(i)
         self.assertEqual(res, sum(range(1, period + 1)))
@@ -65,7 +65,7 @@ class TestSumCalculator(unittest.TestCase):
     def test_update_with_more_than_period(self):
         """测试更新数据，数据点超过周期"""
         period = 3
-        sum_calculator = SumCalculator(period)
+        sum_calculator = SumIC(period)
         for i in range(1, 7):
             sum_calculator.update(i)
         # 最后三个数据点的和应该是 4 + 5 + 6 = 15
@@ -74,7 +74,7 @@ class TestSumCalculator(unittest.TestCase):
     def test_reset(self):
         """测试重置"""
         period = 3
-        sum_calculator = SumCalculator(period)
+        sum_calculator = SumIC(period)
         for i in range(1, 4):
             sum_calculator.update(i)
         sum_calculator.reset()
@@ -115,17 +115,63 @@ class TestRecoverMos(unittest.TestCase):
     }
 
     def test_recover_tick_size(self):
-        recover = RecoverMos(0.01, 10000)
+        recover = MosRecoverIC(0.01, 10000)
         self.assertEqual(recover.update(self.last_lob), [])
         result = recover.update(self.cur_lob)
         self.assertEqual(len(result), 3)
 
     def test_recover_sym(self):
-        recover = RecoverMos(sym="tl2412")
+        recover = MosRecoverIC(sym="tl2412")
         self.assertEqual(recover.tick_size, 0.01)
         self.assertEqual(recover.update(self.last_lob), [])
         result = recover.update(self.cur_lob)
         self.assertEqual(len(result), 3)
+
+
+class TestVarianceIC(unittest.TestCase):
+
+    def setUp(self):
+        # 初始化一个周期为5的VarianceIC实例
+        self.variance_ic = VarianceIC(period=5)
+
+    def test_initialization(self):
+        # 测试VarianceIC是否正确初始化
+        self.assertEqual(self.variance_ic.exp_squared.period, 5)
+        self.assertEqual(self.variance_ic.exp.period, 5)
+        self.assertEqual(len(self.variance_ic.exp_squared.data), 0)
+        self.assertEqual(len(self.variance_ic.exp.data), 0)
+        self.assertIsNone(self.variance_ic.result)
+
+    def test_update_and_calculate(self):
+        # 测试update方法是否能正确计算方差
+        # 初始更新，由于数据不足，不应计算方差
+        for i in range(1, 5):
+            self.variance_ic.update(i)
+            self.assertIsNone(self.variance_ic.result)
+
+        # 第五次更新，现在应该有足够的数据来计算方差
+        self.variance_ic.update(5)
+        expected_variance = ((1**2 + 2**2 + 3**2 + 4**2 + 5**2) / 5) - (
+            (1 + 2 + 3 + 4 + 5) / 5
+        ) ** 2
+        self.assertAlmostEqual(self.variance_ic.result, expected_variance)
+
+        # 继续更新数据，并检查方差是否正确更新
+        self.variance_ic.update(6)
+        expected_variance = ((2**2 + 3**2 + 4**2 + 5**2 + 6**2) / 5) - (
+            (2 + 3 + 4 + 5 + 6) / 5
+        ) ** 2
+        self.assertAlmostEqual(self.variance_ic.result, expected_variance)
+
+    def test_reset(self):
+        # 测试reset方法是否正确清除数据和结果
+        for i in range(1, 6):
+            self.variance_ic.update(i)
+        self.variance_ic.reset()
+        self.assertEqual(len(self.variance_ic.exp_squared.data), 0)
+        self.assertEqual(len(self.variance_ic.exp.data), 0)
+        self.assertIsNone(self.variance_ic.result)
+        self.assertEqual(self.variance_ic.data_count, 0)
 
 
 if __name__ == "__main__":
