@@ -1,5 +1,5 @@
-from rbt.ic import SumIC
-from rbt.dmu import DecisionMakingUnit
+from .decision_making_unit import DecisionMakingUnit
+from ..ic import SumIC
 
 
 class MoIntentionDMU(DecisionMakingUnit):
@@ -12,6 +12,7 @@ class MoIntentionDMU(DecisionMakingUnit):
         watch_mds,
         ratio_threshold,
         minimum_vol,
+        name=None,
     ):
         """_summary_
 
@@ -21,7 +22,7 @@ class MoIntentionDMU(DecisionMakingUnit):
             volume_threshold: 买卖量至少要到多大才能算积极买卖
             minimum_vol: 主要方向的订单至少要达到多少才算 (以防只有1手买被当成主动买入)
         """
-        super().__init__()
+        super().__init__(name)
         self.buy_vol_ic = SumIC(watch_mds)
         self.sell_vol_ic = SumIC(watch_mds)
         self.ratio_threshold = ratio_threshold
@@ -29,13 +30,15 @@ class MoIntentionDMU(DecisionMakingUnit):
 
     def make_decision(self, new_data, prev_result) -> dict:
         cur_mos = new_data["exec_before"]
-        all_buy = 0
-        all_sell = 0
+        cur_buy = 0
+        cur_sell = 0
         for mo in cur_mos:
             if mo["side"] == "buy":
-                all_buy = self.buy_vol_ic.update(mo["volume"])
+                cur_buy += mo["volume"]
             elif mo["side"] == "sell":
-                all_sell = self.sell_vol_ic.update(mo["volume"])
+                cur_sell += mo["volume"]
+        all_buy = self.buy_vol_ic.update(cur_buy)
+        all_sell = self.sell_vol_ic.update(cur_sell)
 
         hits = 0
         ratio = 0.0
@@ -47,5 +50,5 @@ class MoIntentionDMU(DecisionMakingUnit):
                 hits = 1
             elif ratio < -self.ratio_threshold:
                 hits = -1
-                
-        return {"hits": hits, "ratio": ratio}
+
+        return {"hits": hits, "ratio": ratio, "all_buy": all_buy, "all_sell": all_sell}
