@@ -1,4 +1,4 @@
-from progressbar import ProgressBar
+from progressbar import Bar, ETA, Timer, Percentage, ProgressBar
 
 from .md_engine import MdEngine
 from .dmu import DecisionMakingUnit
@@ -20,10 +20,11 @@ class Strategy(object):
     def register_md_engine(self, md_engine: MdEngine):
         self.md_engine = md_engine
 
-    def run(self, show_progress:bool=False):
+    def run(self, show_progress: bool = False):
         self.unit_results = {}
         if show_progress:
-            bar = ProgressBar(maxval=len(self.md_engine.raw_md))
+            widgets = ["Testing:", Percentage(), " ", Bar(), " ", ETA(), ", ", Timer()]
+            bar = ProgressBar(maxval=len(self.md_engine.raw_md), widgets=widgets)
             bar.start()
             step_count = 0
         while True:
@@ -48,10 +49,10 @@ class Strategy(object):
                 for key in result.keys():
                     unit_results[f"{peu_name}_{key}"] = result[key]
             self.unit_results[cur_time] = unit_results
-            
+
             if not self.md_engine.finish_current_md():
                 break
-            
+
             if show_progress:
                 step_count += 1
                 bar.update(step_count)
