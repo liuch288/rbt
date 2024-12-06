@@ -1,5 +1,7 @@
 import unittest
 
+import pandas as pd
+
 from rbt.ic import *
 
 
@@ -83,36 +85,48 @@ class TestSumCalculator(unittest.TestCase):
 
 
 class TestRecoverMos(unittest.TestCase):
-    last_lob = {
-        "bid_sz1": 4,
-        "bid_px1": 108.94,
-        "ask_px1": 108.95,
-        "ask_sz1": 107,
-        "bid_sz2": 9,
-        "bid_px2": 108.93,
-        "ask_px2": 108.96,
-        "ask_sz2": 101,
-        "bid_sz3": 70,
-        "bid_px3": 108.92,
-        "ask_px3": 108.97,
-        "ask_sz3": 103,
-        "bid_sz4": 39,
-        "bid_px4": 108.91,
-        "ask_px4": 108.98,
-        "ask_sz4": 650,
-        "bid_sz5": 175,
-        "bid_px5": 108.9,
-        "ask_px5": 108.99,
-        "ask_sz5": 292,
-    }
-    cur_lob = {
-        "bid_px1": 108.92,
-        "ask_px1": 108.93,
-        "bid_px2": 108.91,
-        "ask_px2": 108.94,
-        "trade_sz": 24.0,
-        "trade_notional": 26143600.0,
-    }
+    class MdShell(object):
+        def __init__(self, data):
+            self.data = data
+            self.name = pd.Timestamp("2024-11-12 09:40:55.200000")
+
+        def __getitem__(self, key):
+            return self.data[key]
+
+    last_lob = MdShell(
+        {
+            "bid_sz1": 4,
+            "bid_px1": 108.94,
+            "ask_px1": 108.95,
+            "ask_sz1": 107,
+            "bid_sz2": 9,
+            "bid_px2": 108.93,
+            "ask_px2": 108.96,
+            "ask_sz2": 101,
+            "bid_sz3": 70,
+            "bid_px3": 108.92,
+            "ask_px3": 108.97,
+            "ask_sz3": 103,
+            "bid_sz4": 39,
+            "bid_px4": 108.91,
+            "ask_px4": 108.98,
+            "ask_sz4": 650,
+            "bid_sz5": 175,
+            "bid_px5": 108.9,
+            "ask_px5": 108.99,
+            "ask_sz5": 292,
+        }
+    )
+    cur_lob = MdShell(
+        {
+            "bid_px1": 108.92,
+            "ask_px1": 108.93,
+            "bid_px2": 108.91,
+            "ask_px2": 108.94,
+            "trade_sz": 24.0,
+            "trade_notional": 26143600.0,
+        }
+    )
 
     def test_recover_tick_size(self):
         recover = MosRecoverIC(0.01, 10000)
@@ -128,21 +142,6 @@ class TestRecoverMos(unittest.TestCase):
         self.assertEqual(len(result), 3)
 
 
-import unittest
-from rbt.ic import IndexCalculator, MeanIC
-
-class VarianceIC(IndexCalculator):
-    def __init__(self, period):
-        super().__init__(1)
-        self.exp_squared = MeanIC(period)
-        self.exp = MeanIC(period)
-
-    def calculate(self, new_data):
-        exp_of_squared_val = self.exp_squared.update(new_data**2)
-        squared_exp_val = self.exp.update(new_data) ** 2
-        self.result = exp_of_squared_val - squared_exp_val
-
-
 class TestVarianceIC(unittest.TestCase):
 
     def setUp(self):
@@ -152,10 +151,8 @@ class TestVarianceIC(unittest.TestCase):
     def test_variance_calculation(self):
         # 测试方差计算是否正确
         data_points = [1, 2, 3, 4, 5]
-        expected_variances = [
-            0.0, 0.5, 1.0, 1.6666666666666667, 2.5
-        ]
-        
+        expected_variances = [0.0, 0.25, 2 / 3, 1.25, 2.0]
+
         for i, data in enumerate(data_points):
             variance = self.variance_ic.update(data)
             self.assertAlmostEqual(variance, expected_variances[i], places=5)
@@ -165,7 +162,7 @@ class TestVarianceIC(unittest.TestCase):
         data_points = [1, 2, 3, 4, 5, 6]
         for data in data_points:
             self.variance_ic.update(data)
-        
+
         # 检查数据是否被正确替换
         self.assertNotIn(1, self.variance_ic.data)
         self.assertIn(6, self.variance_ic.data)
@@ -175,9 +172,9 @@ class TestVarianceIC(unittest.TestCase):
         data_points = [1, 2, 3, 4, 5]
         for data in data_points:
             self.variance_ic.update(data)
-        
+
         self.variance_ic.reset()
-        
+
         self.assertEqual(len(self.variance_ic.data), 0)
         self.assertIsNone(self.variance_ic.result)
         self.assertEqual(self.variance_ic.data_count, 0)
