@@ -11,10 +11,7 @@ class SumIC(IndexCalculator):
             self.result += new_data
         else:
             self.result = self.result - self.data[0] + new_data
-    
+
     def reset(self):
         super().reset()
         self.result = 0
-        
-    
-        
