@@ -180,5 +180,42 @@ class TestVarianceIC(unittest.TestCase):
         self.assertEqual(self.variance_ic.data_count, 0)
 
 
+
+class TestPriceSmoothIC(unittest.TestCase):
+
+    def setUp(self):
+        self.price_smooth_ic = PriceSmoothIC()
+
+    def test_constant_epoch(self):
+        # 测试恒纪元情况
+        self.price_smooth_ic.update(100)
+        self.price_smooth_ic.update(100)
+        self.price_smooth_ic.update(101)
+        self.assertEqual(self.price_smooth_ic.result, 100)  # 应该忽略101的价格变化
+
+    def test_chaos_epoch(self):
+        # 测试乱纪元情况
+        self.price_smooth_ic.update(100)
+        self.price_smooth_ic.update(101)
+        self.price_smooth_ic.update(102)
+        self.assertEqual(self.price_smooth_ic.result, 102)  # 应该返回最新价格102
+
+    def test_transition_to_constant_epoch(self):
+        # 测试从乱纪元转换到恒纪元
+        self.price_smooth_ic.update(100)
+        self.price_smooth_ic.update(101)
+        self.price_smooth_ic.update(102)
+        self.price_smooth_ic.update(102)
+        self.assertEqual(self.price_smooth_ic.result, 102)  # 应该进入恒纪元，忽略后续价格变化
+        self.price_smooth_ic.update(103)
+        self.assertEqual(self.price_smooth_ic.result, 102)  # 仍然忽略103的价格变化
+
+    def test_reset(self):
+        # 测试重置方法
+        self.price_smooth_ic.update(100)
+        self.price_smooth_ic.update(101)
+        self.price_smooth_ic.reset()
+        self.assertIsNone(self.price_smooth_ic.result)  # 结果应该为None
+
 if __name__ == "__main__":
     unittest.main()
