@@ -5,7 +5,7 @@ import pandas as pd
 from rbt.ic import *
 
 
-class TestSMA(unittest.TestCase):
+class TestMeanIC(unittest.TestCase):
     def test_initial_values(self):
         sma = MeanIC(period=5)
         self.assertEqual(sma.result, None)
@@ -39,7 +39,7 @@ class TestSMA(unittest.TestCase):
         self.assertEqual(len(sma.data), 0)
 
 
-class TestSumCalculator(unittest.TestCase):
+class TestSumIC(unittest.TestCase):
     def test_initialization(self):
         """测试初始化"""
         period = 5
@@ -84,7 +84,7 @@ class TestSumCalculator(unittest.TestCase):
         self.assertEqual(len(sum_calculator.data), 0)
 
 
-class TestRecoverMos(unittest.TestCase):
+class TestMosRecoverIC(unittest.TestCase):
     class MdShell(object):
         def __init__(self, data):
             self.data = data
