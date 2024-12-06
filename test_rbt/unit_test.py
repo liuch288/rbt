@@ -182,10 +182,6 @@ class TestVarianceIC(unittest.TestCase):
         self.assertIsNone(self.variance_ic.result)
         self.assertEqual(self.variance_ic.data_count, 0)
 
-if __name__ == '__main__':
-    unittest.main()
-
-
 
 if __name__ == "__main__":
     unittest.main()
