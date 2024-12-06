@@ -1,4 +1,5 @@
-from rbt.ic import IndexCalculator, MeanIC
+from .index_calculator import IndexCalculator
+from .mean_ic import MeanIC
 
 
 class VarianceIC(IndexCalculator):
