@@ -1,6 +1,5 @@
 from rbt.dmu import DecisionMakingUnit
-from rbt.ic import MeanIC
-from rbt.ic import PriceSmoothIC
+from rbt.ic import MeanIC, PriceSmoothIC
 
 
 class TrendDMU(DecisionMakingUnit):
@@ -18,7 +17,7 @@ class TrendDMU(DecisionMakingUnit):
         bias = mid_smo - cur_val
         direction = 0
         delta = cur_val - self.last_val
-        #确定当前方向
+        # 确定当前方向
         if cur_val > self.last_val:
             direction = 1
         elif cur_val < self.last_val:
