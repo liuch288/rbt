@@ -1,4 +1,4 @@
-from rbt.ic import IndexCalculator
+from .index_calculator import IndexCalculator
 
 
 class PriceSmoothIC(IndexCalculator):
@@ -19,6 +19,9 @@ class PriceSmoothIC(IndexCalculator):
         当处于恒纪元时，需要三次价格都不同才进入乱纪元；
         当处于乱纪元时，只要价格连续两次相同，就进入恒纪元
         """
+        if self.data_count < 3:
+            self.result = new_data
+            return None
         if self.data[0] == self.data[1]:
             self.result = self.data[0]
         else:
