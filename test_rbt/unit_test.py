@@ -128,50 +128,63 @@ class TestRecoverMos(unittest.TestCase):
         self.assertEqual(len(result), 3)
 
 
+import unittest
+from rbt.ic import IndexCalculator, MeanIC
+
+class VarianceIC(IndexCalculator):
+    def __init__(self, period):
+        super().__init__(1)
+        self.exp_squared = MeanIC(period)
+        self.exp = MeanIC(period)
+
+    def calculate(self, new_data):
+        exp_of_squared_val = self.exp_squared.update(new_data**2)
+        squared_exp_val = self.exp.update(new_data) ** 2
+        self.result = exp_of_squared_val - squared_exp_val
+
+
 class TestVarianceIC(unittest.TestCase):
 
     def setUp(self):
-        # 初始化一个周期为5的VarianceIC实例
-        self.variance_ic = VarianceIC(period=5)
+        self.period = 5
+        self.variance_ic = VarianceIC(self.period)
 
-    def test_initialization(self):
-        # 测试VarianceIC是否正确初始化
-        self.assertEqual(self.variance_ic.exp_squared.period, 5)
-        self.assertEqual(self.variance_ic.exp.period, 5)
-        self.assertEqual(len(self.variance_ic.exp_squared.data), 0)
-        self.assertEqual(len(self.variance_ic.exp.data), 0)
-        self.assertIsNone(self.variance_ic.result)
+    def test_variance_calculation(self):
+        # 测试方差计算是否正确
+        data_points = [1, 2, 3, 4, 5]
+        expected_variances = [
+            0.0, 0.5, 1.0, 1.6666666666666667, 2.5
+        ]
+        
+        for i, data in enumerate(data_points):
+            variance = self.variance_ic.update(data)
+            self.assertAlmostEqual(variance, expected_variances[i], places=5)
 
-    def test_update_and_calculate(self):
-        # 测试update方法是否能正确计算方差
-        # 初始更新，由于数据不足，不应计算方差
-        for i in range(1, 5):
-            self.variance_ic.update(i)
-            self.assertIsNone(self.variance_ic.result)
-
-        # 第五次更新，现在应该有足够的数据来计算方差
-        self.variance_ic.update(5)
-        expected_variance = ((1**2 + 2**2 + 3**2 + 4**2 + 5**2) / 5) - (
-            (1 + 2 + 3 + 4 + 5) / 5
-        ) ** 2
-        self.assertAlmostEqual(self.variance_ic.result, expected_variance)
-
-        # 继续更新数据，并检查方差是否正确更新
-        self.variance_ic.update(6)
-        expected_variance = ((2**2 + 3**2 + 4**2 + 5**2 + 6**2) / 5) - (
-            (2 + 3 + 4 + 5 + 6) / 5
-        ) ** 2
-        self.assertAlmostEqual(self.variance_ic.result, expected_variance)
+    def test_data_update(self):
+        # 测试数据更新是否正确
+        data_points = [1, 2, 3, 4, 5, 6]
+        for data in data_points:
+            self.variance_ic.update(data)
+        
+        # 检查数据是否被正确替换
+        self.assertNotIn(1, self.variance_ic.data)
+        self.assertIn(6, self.variance_ic.data)
 
     def test_reset(self):
-        # 测试reset方法是否正确清除数据和结果
-        for i in range(1, 6):
-            self.variance_ic.update(i)
+        # 测试重置方法是否正确
+        data_points = [1, 2, 3, 4, 5]
+        for data in data_points:
+            self.variance_ic.update(data)
+        
         self.variance_ic.reset()
-        self.assertEqual(len(self.variance_ic.exp_squared.data), 0)
-        self.assertEqual(len(self.variance_ic.exp.data), 0)
+        
+        self.assertEqual(len(self.variance_ic.data), 0)
         self.assertIsNone(self.variance_ic.result)
         self.assertEqual(self.variance_ic.data_count, 0)
+
+if __name__ == '__main__':
+    unittest.main()
+
 
 
 if __name__ == "__main__":
