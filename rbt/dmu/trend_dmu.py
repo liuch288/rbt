@@ -24,7 +24,7 @@ class TrendDMU(DecisionMakingUnit):
             direction = -1
         self.last_val = cur_val
         # 检测方向变化
-        hits = round((direction - self.last_direction) / 2)
+        hits = round((direction - self.last_direction) / 2.00001)
         self.last_direction = direction
         return {
             "hits": hits,
