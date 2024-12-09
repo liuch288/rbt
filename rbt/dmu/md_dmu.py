@@ -42,7 +42,7 @@ class MdDMU(DecisionMakingUnit):
             "mid": mid,
             "mid_smo": mid_smo,
             "mean": mean_px,
-            "variance": std,
+            "std": std,
             "quantile": quantile,
             "ob_avg": ob_avg,
             "cum_avg": cum_avg,
