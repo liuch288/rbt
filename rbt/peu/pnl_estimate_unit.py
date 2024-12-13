@@ -9,12 +9,14 @@ class PnlEstimateUnit:
         self.watching_time = watching_time
         self.watching_mds = watching_mds
         self.name = f"{self.__class__.__name__}_{self.__class__.version}"
+        self.name_updated = False
 
     def update_unit_name(self) -> str:
         """根据参数更新unit name，由各个PEU主动调用"""
         suffix = self.get_param_str()
         if len(suffix) > 0:
             self.name += "_" + suffix
+        self.name_updated = True
 
     def get_param_str(self) -> str:
         """生成参数信息，默认为空
