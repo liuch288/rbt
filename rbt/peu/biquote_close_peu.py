@@ -7,7 +7,7 @@ class BiquoteClosePEU(PnlEstimateUnit):
         self,
         total_watching_time: float = None,
         start_closing_time: float = None,
-        active_closing_time: float = 3.0,
+        active_closing_time: float = 3,
         lb: int = 1,
         la: int = 1,
         tick_size: float = 0.005,
@@ -20,6 +20,7 @@ class BiquoteClosePEU(PnlEstimateUnit):
         super().__init__(total_watching_time + active_closing_time, None)
         self.total_watching_time = total_watching_time
         self.start_closing_time = start_closing_time
+        self.active_closing_time = active_closing_time
         self.lb = lb
         self.la = la
         self.tick_size = tick_size
@@ -27,7 +28,7 @@ class BiquoteClosePEU(PnlEstimateUnit):
         self.update_unit_name()
 
     def get_param_str(self):
-        return f"{self.total_watching_time}_{self.start_closing_time}_{self.lb}_{self.la}"
+        return f"{self.total_watching_time}_{self.start_closing_time}_{self.active_closing_time}_{self.lb}_{self.la}"
 
     def estimate(self, future_data, *args, **kwargs) -> dict:
         init_md = future_data.iloc[0]
