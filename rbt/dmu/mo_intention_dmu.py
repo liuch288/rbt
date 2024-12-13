@@ -7,12 +7,13 @@ class MoIntentionDMU(DecisionMakingUnit):
     市价单倾向性dmu
     """
 
+    version = "v0"
+
     def __init__(
         self,
         watch_mds,
         ratio_threshold,
         minimum_vol,
-        name=None,
     ):
         """_summary_
 
@@ -22,11 +23,16 @@ class MoIntentionDMU(DecisionMakingUnit):
             volume_threshold: 买卖量至少要到多大才能算积极买卖
             minimum_vol: 主要方向的订单至少要达到多少才算 (以防只有1手买被当成主动买入)
         """
-        super().__init__(name)
+        super().__init__()
+        self.watch_mds = watch_mds
         self.buy_vol_ic = SumIC(watch_mds)
         self.sell_vol_ic = SumIC(watch_mds)
         self.ratio_threshold = ratio_threshold
         self.minimum_vol = minimum_vol
+        self.update_unit_name()
+
+    def get_param_str(self):
+        return f"{self.watch_mds}_{self.ratio_threshold}_{self.minimum_vol}"
 
     def make_decision(self, new_data, prev_result) -> dict:
         cur_mos = new_data["exec_before"]
