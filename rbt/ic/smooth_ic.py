@@ -17,6 +17,3 @@ class SmoothIC(IndexCalculator):
             self.result = self.data[0]
         else:
             self.result = new_data
-                
-    def reset(self):
-        super().reset()
