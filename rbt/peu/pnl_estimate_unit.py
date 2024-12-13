@@ -1,4 +1,6 @@
-class PnlEstimateUnit(object):
+class PnlEstimateUnit:
+    version = "v0"
+
     def __init__(self, watching_time: float = None, watching_mds: int = None):
         if watching_time is not None and watching_mds is not None:
             raise ValueError(
@@ -6,14 +8,13 @@ class PnlEstimateUnit(object):
             )
         self.watching_time = watching_time
         self.watching_mds = watching_mds
+        self.name = f"{self.__class__.__name__}_{self.__class__.version}"
 
-    @property
-    def name(self) -> str:
-        peu_name = f"{self.__class__.__name__}_{self.__class__.version}"
+    def update_unit_name(self) -> str:
+        """根据参数更新unit name，由各个PEU主动调用"""
         suffix = self.get_param_str()
         if len(suffix) > 0:
-            peu_name += "_" + suffix
-        return peu_name
+            self.name += "_" + suffix
 
     def get_param_str(self) -> str:
         """生成参数信息，默认为空
