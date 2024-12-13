@@ -22,6 +22,17 @@ class ResultDB(object):
         return list(data.columns)
 
     def save_data(self, sym, date, new_data) -> None:
+        path = self._get_path(sym, date)
+        ori_data = pd.read_pickle(path)
+        merged_data = ori_data.merge(
+            new_data,
+            left_index=True,
+            right_index=True,
+            how="outer",
+            suffixes=("_x", ""),
+        )
+        merged_data = merged_data.loc[:, ~merged_data.columns.str.endswith("_x")]
+        merged_data.to_pickle(path)
         return None
 
     def _get_path(self, sym: str, date: datetime.date) -> pd.DataFrame:
