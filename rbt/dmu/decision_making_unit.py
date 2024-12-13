@@ -1,9 +1,11 @@
-class DecisionMakingUnit:
-    def __init__(self, name: str = None):
-        if name is None:
-            self.name = self.__class__.__name__
-        else:
-            self.name = name
+from ..unit import Unit
+
+
+class DecisionMakingUnit(Unit):
+    version = "v0"
+
+    def __init__(self):
+        super().__init__()
 
     def on_market_data(self, new_data, previous_result: dict = {}):
         """

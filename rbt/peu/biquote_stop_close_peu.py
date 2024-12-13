@@ -3,16 +3,17 @@ from rbt.peu.biquote_peu import Order
 
 
 class BiquoteStopClosePEU(PnlEstimateUnit):
+    version = "v0"
+
     def __init__(
         self,
         total_watching_time: float = None,
         start_closing_time: float = None,
-        active_closing_time: float = 3.0,
+        active_closing_time: float = 3,
         stop_loss_ticks: int = None,
         lb: int = 1,
         la: int = 1,
         tick_size: float = 0.005,
-        name: str = None,
     ):
         """
         lb、la是以一档为基准的价格，取1时是指在一档挂单，0时则为比一档更优一个报价单位的价格下单，其他是在一档的基础上加减lx-1个报价单位
@@ -20,14 +21,19 @@ class BiquoteStopClosePEU(PnlEstimateUnit):
         stop_loss_ticks是指立即对手价平仓亏损达到>=这么多个tick时，就立刻以对手价抛出
         active_closing_time是指策略以对手价格积极平仓
         """
-        super().__init__(total_watching_time + active_closing_time, None, name)
+        super().__init__(total_watching_time + active_closing_time, None)
         self.total_watching_time = total_watching_time
         self.start_closing_time = start_closing_time
+        self.active_closing_time = active_closing_time
         self.stop_loss_ticks = stop_loss_ticks
         self.lb = lb
         self.la = la
         self.tick_size = tick_size
         self.digits = len(str(tick_size).split(".")[1])
+        self.update_unit_name()
+
+    def get_param_str(self):
+        return f"{self.total_watching_time}_{self.start_closing_time}_{self.active_closing_time}_{self.lb}_{self.la}_{self.stop_loss_ticks}"
 
     def estimate(self, future_data, *args, **kwargs) -> dict:
         init_md = future_data.iloc[0]
