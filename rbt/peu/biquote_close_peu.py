@@ -3,6 +3,8 @@ from .biquote_peu import Order
 
 
 class BiquoteClosePEU(PnlEstimateUnit):
+    version = "v0"
+
     def __init__(
         self,
         total_watching_time: float = None,
