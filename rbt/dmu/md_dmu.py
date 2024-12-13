@@ -4,8 +4,10 @@ from ..util import get_instrument_info
 
 
 class MdDMU(DecisionMakingUnit):
-    def __init__(self, sym: str, name: str = None):
-        super().__init__(name)
+    version = "v0"
+
+    def __init__(self, sym: str):
+        super().__init__()
         info = get_instrument_info(sym)
         self.hands = info["hands"]
         self.bid_filter = SmoothIC()
