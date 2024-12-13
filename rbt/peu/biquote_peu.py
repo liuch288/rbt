@@ -44,6 +44,8 @@ class Order(object):
 
 
 class BiquotePEU(PnlEstimateUnit):
+    version = "v0"
+
     def __init__(
         self,
         order_maintaining_time: float = None,
