@@ -3,6 +3,7 @@ from progressbar import Bar, ETA, Timer, Percentage, ProgressBar
 from .md_engine import MdEngine
 from .dmu import DecisionMakingUnit
 from .peu import PnlEstimateUnit
+from .result_db import ResultDB
 
 
 class Strategy(object):
@@ -19,6 +20,9 @@ class Strategy(object):
 
     def register_md_engine(self, md_engine: MdEngine):
         self.md_engine = md_engine
+
+    def register_result_db(self, result_db: ResultDB):
+        self.result_db = result_db
 
     def run(self, show_progress: bool = False):
         self.unit_results = {}
