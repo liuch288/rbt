@@ -1,12 +1,12 @@
 from rbt.dmu import DecisionMakingUnit
-from rbt.ic import MeanIC, PriceSmoothIC
+from rbt.ic import MeanIC, SmoothIC
 
 
 class TrendDMU(DecisionMakingUnit):
     def __init__(self, period: int = 90, name: str = None):
         super().__init__(name)
         self.ma = MeanIC(period)
-        self.smoother = PriceSmoothIC()
+        self.smoother = SmoothIC()
         self.last_val = 0.0
         self.last_direction = 0
 
