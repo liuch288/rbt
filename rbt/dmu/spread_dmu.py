@@ -2,8 +2,10 @@ from .decision_making_unit import DecisionMakingUnit
 
 
 class SpreadDMU(DecisionMakingUnit):
-    def __init__(self, tick_size: float = 0.005, name: str = None):
-        super().__init__(name)
+    version = "v0"
+
+    def __init__(self, tick_size: float = 0.005):
+        super().__init__()
         self.tick_size = tick_size
 
     def make_decision(self, new_data, *args, **kwargs) -> dict:
