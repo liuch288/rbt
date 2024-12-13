@@ -3,6 +3,8 @@ from rbt.peu.biquote_peu import Order
 
 
 class BiquoteStopClosePEU(PnlEstimateUnit):
+    version = "v0"
+
     def __init__(
         self,
         total_watching_time: float = None,
