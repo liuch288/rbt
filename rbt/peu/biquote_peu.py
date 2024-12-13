@@ -62,9 +62,10 @@ class BiquotePEU(PnlEstimateUnit):
         self.order_maintaining_time = order_maintaining_time
         self.tick_size = tick_size
         self.digits = len(str(tick_size).split(".")[1])
+        self.update_unit_name()
 
     def get_param_str(self):
-        return f"{self.lb}_{self.la}_{self.order_maintaining_time}"
+        return f"{self.order_maintaining_time}_{self.lb}_{self.la}"
 
     def estimate(self, future_data, *args, **kwargs) -> dict:
         # 确定有多少订单排在前面
