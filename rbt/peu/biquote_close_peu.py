@@ -11,20 +11,23 @@ class BiquoteClosePEU(PnlEstimateUnit):
         lb: int = 1,
         la: int = 1,
         tick_size: float = 0.005,
-        name: str = None,
     ):
         """
         lb、la是以一档为基准的价格，取1时是指在一档挂单，0时则为比一档更优一个报价单位的价格下单，其他是在一档的基础上加减lx-1个报价单位
         该PEU会多要active_closing_time秒数据，如果有头寸，在这段时间内平掉。
         active_closing_time是指策略以对手价格积极平仓
         """
-        super().__init__(total_watching_time + active_closing_time, None, name)
+        super().__init__(total_watching_time + active_closing_time, None)
         self.total_watching_time = total_watching_time
         self.start_closing_time = start_closing_time
         self.lb = lb
         self.la = la
         self.tick_size = tick_size
         self.digits = len(str(tick_size).split(".")[1])
+        self.update_unit_name()
+
+    def get_param_str(self):
+        return f"{self.total_watching_time}_{self.start_closing_time}_{self.lb}_{self.la}"
 
     def estimate(self, future_data, *args, **kwargs) -> dict:
         init_md = future_data.iloc[0]
