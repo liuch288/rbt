@@ -18,21 +18,26 @@ class ResultDB(object):
 
     def query_existed_columns(self, sym: str, date: datetime.date) -> list:
         path = self._get_path(sym, date)
-        data = pd.read_pickle(path, compression="gzip")
-        return list(data.columns)
+        if os.path.exists(path):
+            data = pd.read_pickle(path, compression="gzip")
+            return list(data.columns)
+        return []
 
     def save_data(self, sym, date, new_data) -> None:
         path = self._get_path(sym, date)
-        ori_data = pd.read_pickle(path)
-        merged_data = ori_data.merge(
-            new_data,
-            left_index=True,
-            right_index=True,
-            how="outer",
-            suffixes=("_x", ""),
-        )
-        merged_data = merged_data.loc[:, ~merged_data.columns.str.endswith("_x")]
-        merged_data.to_pickle(path)
+        if os.path.exists(path):
+            ori_data = pd.read_pickle(path)
+            merged_data = ori_data.merge(
+                new_data,
+                left_index=True,
+                right_index=True,
+                how="outer",
+                suffixes=("_x", ""),
+            )
+            merged_data = merged_data.loc[:, ~merged_data.columns.str.endswith("_x")]
+            merged_data.to_pickle(path)
+        else:
+            new_data.to_pickle(path)
         return None
 
     def _get_path(self, sym: str, date: datetime.date) -> pd.DataFrame:
