@@ -16,7 +16,7 @@ class ResultDB(object):
         else:
             raise FileNotFoundError(f"{db_directory} not found.")
 
-    def query_existed_columns(self, sym: str, date: datetime.date) -> list:
+    def get_existed_columns(self, sym: str, date: datetime.date) -> list:
         path = self._get_path(sym, date)
         if os.path.exists(path):
             data = pd.read_pickle(path, compression="gzip")
@@ -26,7 +26,7 @@ class ResultDB(object):
     def save_data(self, sym, date, new_data) -> None:
         path = self._get_path(sym, date)
         if os.path.exists(path):
-            ori_data = pd.read_pickle(path)
+            ori_data = pd.read_pickle(path, compression="gzip")
             merged_data = ori_data.merge(
                 new_data,
                 left_index=True,
@@ -35,9 +35,9 @@ class ResultDB(object):
                 suffixes=("_x", ""),
             )
             merged_data = merged_data.loc[:, ~merged_data.columns.str.endswith("_x")]
-            merged_data.to_pickle(path)
+            merged_data.to_pickle(path, compression="gzip")
         else:
-            new_data.to_pickle(path)
+            new_data.to_pickle(path, compression="gzip")
         return None
 
     def _get_path(self, sym: str, date: datetime.date) -> pd.DataFrame:

@@ -36,7 +36,7 @@ class Strategy(object):
         new_peus = []
         for peu in self.peus:
             if not any(col.startswith(peu.name) for col in existed_cols):
-                new_peus.append(dmu)
+                new_peus.append(peu)
 
         # 执行运算
         self.unit_results = {}
