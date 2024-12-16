@@ -15,16 +15,22 @@ class MdEngine(object):
     """
 
     def __init__(self) -> None:
-        self.date = None
+        self.cur_sym = None
+        self.cur_date = None
         self.raw_md = None
         self.current_index = 0
 
     def prepare_data(self, sym: str, date: datetime.date):
         raise NotImplementedError("Subclasses should implement this method.")
 
-    def _register_raw_md(self, raw_md):
+    def _register_raw_md(self, sym: str, date: datetime.date, raw_md):
+        """注册原始行情数据
+        注意，sym必须是绝对代码，比如TS2503，而不能是TS01这种代号
+        """
         if not isinstance(raw_md.index, pd.DatetimeIndex):
             raise ValueError("raw_md must be indexed by datetime.")
+        self.cur_sym = sym
+        self.cur_date = date
         self.raw_md = raw_md.sort_index().copy()
         self.current_index = 0
         if "exec_after" not in self.raw_md.columns:
