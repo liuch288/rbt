@@ -1,14 +1,20 @@
 from rbt.dmu import DecisionMakingUnit
-from rbt.ic import MeanIC, PriceSmoothIC
+from rbt.ic import MeanIC, SmoothIC
 
 
 class TrendDMU(DecisionMakingUnit):
-    def __init__(self, period: int = 90, name: str = None):
-        super().__init__(name)
+    version = "v0"
+
+    def __init__(self, period: int = 90):
+        super().__init__()
         self.ma = MeanIC(period)
-        self.smoother = PriceSmoothIC()
+        self.period = period
+        self.smoother = SmoothIC()
         self.last_val = 0.0
         self.last_direction = 0
+
+    def get_param_str(self):
+        return str(self.period)
 
     def make_decision(self, new_data, prev_result) -> dict:
         mid = (new_data["bid_px1"] + new_data["ask_px1"]) / 2

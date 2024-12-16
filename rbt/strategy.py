@@ -1,15 +1,16 @@
+import pandas as pd
 from progressbar import Bar, ETA, Timer, Percentage, ProgressBar
 
 from .md_engine import MdEngine
 from .dmu import DecisionMakingUnit
 from .peu import PnlEstimateUnit
+from .result_db import ResultDB
 
 
 class Strategy(object):
     def __init__(self) -> None:
         self.dmus = []
         self.peus = []
-        self.md_engine = None
 
     def register_dmu(self, dmu: DecisionMakingUnit):
         self.dmus.append(dmu)
@@ -20,7 +21,24 @@ class Strategy(object):
     def register_md_engine(self, md_engine: MdEngine):
         self.md_engine = md_engine
 
+    def register_result_db(self, result_db: ResultDB):
+        self.result_db = result_db
+
     def run(self, show_progress: bool = False):
+        # 首先看哪些unit需要计算
+        cur_sym = self.md_engine.cur_sym
+        cur_date = self.md_engine.cur_date
+        existed_cols = self.result_db.get_existed_columns(cur_sym, cur_date)
+        new_dmus = []
+        for dmu in self.dmus:
+            if not any(col.startswith(dmu.name) for col in existed_cols):
+                new_dmus.append(dmu)
+        new_peus = []
+        for peu in self.peus:
+            if not any(col.startswith(peu.name) for col in existed_cols):
+                new_peus.append(dmu)
+
+        # 执行运算
         self.unit_results = {}
         if show_progress:
             widgets = ["Testing:", Percentage(), " ", Bar(), " ", ETA(), ", ", Timer()]
@@ -34,13 +52,13 @@ class Strategy(object):
             cur_time = new_md.name
 
             unit_results = {}
-            for dmu in self.dmus:
+            for dmu in new_dmus:
                 dmu_name = dmu.name
                 result = dmu.on_market_data(new_md, unit_results)
                 for key in result.keys():
                     unit_results[f"{dmu_name}_{key}"] = result[key]
 
-            for peu in self.peus:
+            for peu in new_peus:
                 peu_name = peu.name
                 future_md = self.md_engine.get_future_md(
                     peu.watching_time, peu.watching_mds
@@ -55,6 +73,11 @@ class Strategy(object):
 
             if show_progress:
                 step_count += 1
-                bar.update(step_count)
+                bar.update(step_count)       
+
         if show_progress:
             bar.finish()
+        
+        # 保存结果
+        new_data = pd.DataFrame.from_dict(self.unit_results, orient="index")
+        self.result_db.save_data(cur_sym, cur_date, new_data)

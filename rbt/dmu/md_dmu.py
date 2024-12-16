@@ -1,15 +1,17 @@
 from .decision_making_unit import DecisionMakingUnit
-from ..ic import PriceSmoothIC, VarianceIC, MeanIC
+from ..ic import SmoothIC, VarianceIC, MeanIC
 from ..util import get_instrument_info
 
 
 class MdDMU(DecisionMakingUnit):
-    def __init__(self, sym: str, name: str = None):
-        super().__init__(name)
+    version = "v0"
+
+    def __init__(self, sym: str):
+        super().__init__()
         info = get_instrument_info(sym)
         self.hands = info["hands"]
-        self.bid_filter = PriceSmoothIC()
-        self.ask_filter = PriceSmoothIC()
+        self.bid_filter = SmoothIC()
+        self.ask_filter = SmoothIC()
         self.variance_ic = VarianceIC(120)
         self.mean_ic = MeanIC(120)
 
