@@ -1,5 +1,6 @@
 from .decision_making_unit import DecisionMakingUnit
 
+
 class PositionPnlDMU(DecisionMakingUnit):
     version = "v0"
 
@@ -12,35 +13,27 @@ class PositionPnlDMU(DecisionMakingUnit):
 
     def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         pnl_results = {}
-        for key, value in previous_result.items():
+        for key, current_position in previous_result.items():
             if key.endswith("_position"):
                 position_pnl_key = key.replace("_position", "_pnl")
                 if key not in self.positions:
-                    self.positions[key] = {'position': 0, 'cost': 0}
-                
-                current_position = self.positions[key]['position']
-                previous_position = value
-                if current_position != previous_position:
-                    if current_position != 0:
-                        # 平仓
-                        if current_position == 1:
-                            close_price = new_data["bid_px1"]
-                        else:
-                            close_price = new_data["ask_px1"]
-                        pnl = close_price - self.positions[key]['cost']
-                        self.positions[key]['position'] = 0
-                    # 开仓
-                    if previous_position != 0:
-                        if previous_position == 1:
-                            open_price = new_data["ask_px1"]
-                        else:
-                            open_price = new_data["bid_px1"]
-                        self.positions[key]['cost'] = open_price
-                        self.positions[key]['position'] = previous_position
-                    
-                    pnl_results[position_pnl_key] = pnl
-                else:
-                    # 没有变动，损益为0
-                    pnl_results[position_pnl_key] = 0
-        
+                    self.positions[key] = {"position": 0, "cashflow": 0}
+
+                previous_position = self.positions[key]["position"]
+                cur_bid1 = new_data["bid_px1"]
+                cur_ask1 = new_data["ask_px1"]
+
+                delta_position = current_position - previous_position
+                trading_price = cur_ask1 if delta_position > 0 else cur_bid1
+                closing_price = cur_bid1 if current_position > 0 else cur_ask1
+
+                self.positions[key]["position"] = current_position
+                prev_cashflow = self.positions[key]["cashflow"]
+                total_cashflow = prev_cashflow - delta_position * trading_price
+                self.positions[key]["cashflow"] = total_cashflow
+
+                pnl_results[position_pnl_key] = (
+                    total_cashflow + closing_price * current_position
+                )
+
         return pnl_results
