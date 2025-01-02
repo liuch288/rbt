@@ -23,7 +23,9 @@ class MdEngine(object):
     def prepare_data(self, sym: str, date: datetime.date):
         raise NotImplementedError("Subclasses should implement this method.")
 
-    def _register_raw_md(self, sym: str, date: datetime.date, raw_md):
+    def _register_raw_md(
+        self, sym: str, date: datetime.date, raw_md, recover_mo: bool = True
+    ):
         """注册原始行情数据
         注意，sym必须是绝对代码，比如TS2503，而不能是TS01这种代号
         """
@@ -33,7 +35,7 @@ class MdEngine(object):
         self.cur_date = date
         self.raw_md = raw_md.sort_index().copy()
         self.current_index = 0
-        if "exec_after" not in self.raw_md.columns:
+        if "exec_after" not in self.raw_md.columns and recover_mo:
             self.__recover_mo()
 
     def __recover_mo(self):
