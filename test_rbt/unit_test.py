@@ -84,7 +84,7 @@ class TestSumIC(unittest.TestCase):
         self.assertEqual(len(sum_calculator.data), 0)
 
 
-class TestMosRecoverIC(unittest.TestCase):
+class TestMosRecoverICLv2(unittest.TestCase):
     class MdShell(object):
         def __init__(self, data):
             self.data = data
@@ -128,11 +128,22 @@ class TestMosRecoverIC(unittest.TestCase):
         }
     )
 
+    def compare_lists(self, lst1, lst2):
+        sorted_lst1 = sorted([tuple(sorted(d.items())) for d in lst1])
+        sorted_lst2 = sorted([tuple(sorted(d.items())) for d in lst2])
+        return sorted_lst1 == sorted_lst2
+
     def test_recover_tick_size(self):
         recover = MosRecoverIC(0.01, 10000)
         self.assertEqual(recover.update(self.last_lob), [])
         result = recover.update(self.cur_lob)
         self.assertEqual(len(result), 3)
+        ans = [
+            {"side": "sell", "price": 108.93, "volume": 10},
+            {"side": "sell", "price": 108.92, "volume": 5},
+            {"side": "sell", "price": 108.94, "volume": 9},
+        ]
+        self.assertTrue(self.compare_lists(result, ans))
 
     def test_recover_sym(self):
         recover = MosRecoverIC(sym="tl2412")
@@ -140,6 +151,56 @@ class TestMosRecoverIC(unittest.TestCase):
         self.assertEqual(recover.update(self.last_lob), [])
         result = recover.update(self.cur_lob)
         self.assertEqual(len(result), 3)
+
+
+class TestMosRecoverICLv1(unittest.TestCase):
+    class MdShell(object):
+        def __init__(self, data):
+            self.data = data
+            self.name = pd.Timestamp("2024-11-12 09:40:55.200000")
+
+        def __getitem__(self, key):
+            return self.data[key]
+
+    last_lob = MdShell(
+        {
+            "bid_sz1": 4,
+            "bid_px1": 108.94,
+            "ask_px1": 108.95,
+            "ask_sz1": 107,
+        }
+    )
+    cur_lob = MdShell(
+        {
+            "bid_px1": 108.92,
+            "ask_px1": 108.93,
+            "trade_sz": 24.0,
+            "trade_notional": 26143600.0,
+        }
+    )
+
+    def compare_lists(self, lst1, lst2):
+        sorted_lst1 = sorted([tuple(sorted(d.items())) for d in lst1])
+        sorted_lst2 = sorted([tuple(sorted(d.items())) for d in lst2])
+        return sorted_lst1 == sorted_lst2
+
+    def test_recover_tick_size(self):
+        recover = MosRecoverIC(0.01, 10000, md_type="lv1")
+        self.assertEqual(recover.update(self.last_lob), [])
+        result = recover.update(self.cur_lob)
+        self.assertEqual(len(result), 2)
+        ans = [
+            {"side": "sell", "price": 108.93, "volume": 20},
+            {"side": "sell", "price": 108.94, "volume": 4},
+        ]
+        self.assertTrue(self.compare_lists(ans, result))
+
+    def test_recover_sym(self):
+        recover = MosRecoverIC(sym="tl2412", md_type="lv1")
+        self.assertEqual(recover.tick_size, 0.01)
+        self.assertEqual(recover.update(self.last_lob), [])
+        result = recover.update(self.cur_lob)
+        self.assertEqual(len(result), 2)
 
 
 class TestVarianceIC(unittest.TestCase):
@@ -180,7 +241,6 @@ class TestVarianceIC(unittest.TestCase):
         self.assertEqual(self.variance_ic.data_count, 0)
 
 
-
 class TestSmoothIC(unittest.TestCase):
 
     def setUp(self):
@@ -216,6 +276,7 @@ class TestSmoothIC(unittest.TestCase):
         self.smooth_ic.update(101)
         self.smooth_ic.reset()
         self.assertIsNone(self.smooth_ic.result)  # 结果应该为None
+
 
 if __name__ == "__main__":
     unittest.main()
