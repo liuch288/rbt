@@ -20,6 +20,11 @@ class GpMdEngine(MdEngine):
         md["datetime"] = pd.to_datetime(md["datetime"], format="%Y%m%d%H%M%S")
         md.set_index("datetime", inplace=True)
 
+        # 计算每个行情戳的成交情况
+        md["trade_sz"] = md["tot_sz"] - md["tot_sz"].shift()
+        md["trade_notional"] = md["tot_notional"] - md["tot_notional"].shift()
+        md = md.dropna(subset=["trade_sz", "trade_notional"], axis=0)
+
         # 调用 _register_raw_md 方法注册处理好的数据
         self._register_raw_md(sym, date, md, recover_mo=False)
 
