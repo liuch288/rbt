@@ -20,26 +20,8 @@ class GpMdEngine(MdEngine):
         md["datetime"] = pd.to_datetime(md["datetime"], format="%Y%m%d%H%M%S")
         md.set_index("datetime", inplace=True)
 
-        # # 重命名列以匹配 RBT 框架的要求
-        # md.rename(
-        #     columns={
-        #         "sym": "name",
-        #         "last_px": "close",
-        #         "open": "open",
-        #         "bid_px1": "bid_px1",
-        #         "bid_sz1": "bid_sz1",
-        #         "ask_px1": "ask_px1",
-        #         "ask_sz1": "ask_sz1",
-        #         "high": "high",
-        #         "low": "low",
-        #         "tot_sz": "volume",
-        #         "tot_notional": "turnover",
-        #     },
-        #     inplace=True,
-        # )
-
         # 调用 _register_raw_md 方法注册处理好的数据
-        self._register_raw_md(sym, date, md)
+        self._register_raw_md(sym, date, md, recover_mo=False)
 
     def get_tick_size(self, code):
         if code.startswith("sh"):
