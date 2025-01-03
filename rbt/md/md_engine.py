@@ -1,8 +1,8 @@
 import datetime
 import pandas as pd
 
-from .ic import MosRecoverIC
-from .util import get_instrument_info
+from ..ic import MosRecoverIC
+from ..util import get_instrument_info
 
 
 class MdEngine(object):
