@@ -153,7 +153,7 @@ def recover_mo_core_lv2(
     return all_orders
 
 
-def recover_mo_core_lv2(
+def recover_mo_core_lv1(
     last_lob, cur_lob, tick_size: float, hands: int, split_unknown: bool
 ) -> list:
     """
@@ -295,7 +295,13 @@ def recover_mo_core_lv2(
 
 
 class MosRecoverIC(IndexCalculator):
-    def __init__(self, tick_size: float = 0.005, hands: int = 10000, sym: str = None):
+    def __init__(
+        self,
+        tick_size: float = 0.005,
+        hands: int = 10000,
+        sym: str = None,
+        md_type: str = "lv2",
+    ):
         super().__init__(1)
         self.last_lob = None
         if sym is None:
@@ -305,6 +311,12 @@ class MosRecoverIC(IndexCalculator):
             info = get_instrument_info(sym)
             self.tick_size = info["tick_size"]
             self.hands = info["hands"]
+        if md_type == "lv2":
+            self.mo_recover_func = recover_mo_core_lv2
+        elif md_type == "lv1":
+            self.mo_recover_func = recover_mo_core_lv1
+        else:
+            self.mo_recover_func = recover_mo_core_lv2
 
     def calculate(self, new_data):
         if self.last_lob is None:
@@ -312,13 +324,13 @@ class MosRecoverIC(IndexCalculator):
         else:
             if self.last_lob.name.hour < 12 and new_data.name.hour > 12:
                 try:
-                    self.result = recover_mo_core_lv2(
+                    self.result = self.mo_recover_func(
                         self.last_lob, new_data, self.tick_size, self.hands, True
                     )
                 except:
                     self.result = []
             else:
-                self.result = recover_mo_core_lv2(
+                self.result = self.mo_recover_func(
                     self.last_lob, new_data, self.tick_size, self.hands, True
                 )
         self.last_lob = new_data
