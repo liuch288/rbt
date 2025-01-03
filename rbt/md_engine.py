@@ -35,7 +35,7 @@ class MdEngine(object):
         self.cur_date = date
         self.raw_md = raw_md.sort_index().copy()
         self.current_index = 0
-        if "exec_after" not in self.raw_md.columns and recover_mo:
+        if ("exec_after" not in self.raw_md.columns) and recover_mo:
             self.__recover_mo()
 
     def __recover_mo(self):
