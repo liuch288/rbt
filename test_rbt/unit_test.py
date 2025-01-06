@@ -278,5 +278,34 @@ class TestSmoothIC(unittest.TestCase):
         self.assertIsNone(self.smooth_ic.result)  # 结果应该为None
 
 
+class TestRollingKlineIC(unittest.TestCase):
+    def test_calculate(self):
+        # 创建KlineIC实例
+        kline_ic = RollingKlineIC(period=5)
+
+        # 添加测试数据
+        test_data = [100, 102, 101, 105, 103]
+        for data in test_data:
+            kline_ic.update(data)
+
+        # 调用calculate方法
+        kline_ic.calculate(None)
+
+        # 检查初始结果
+        expected_result = {"open": 100, "close": 103, "high": 105, "low": 100}
+        self.assertEqual(kline_ic.result, expected_result)
+
+        # 添加新数据并移除旧数据
+        new_data = 106
+        kline_ic.update(new_data)
+
+        # 再次调用calculate方法
+        kline_ic.calculate(None)
+
+        # 检查更新后的结果
+        expected_result = {"open": 102, "close": 106, "high": 106, "low": 101}
+        self.assertEqual(kline_ic.result, expected_result)
+
+
 if __name__ == "__main__":
     unittest.main()
