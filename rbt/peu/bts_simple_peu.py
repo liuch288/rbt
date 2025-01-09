@@ -1,4 +1,4 @@
-from rbt.peu import PnlEstimateUnit
+from .pnl_estimate_unit import PnlEstimateUnit
 
 
 class BtsSimplePEU(PnlEstimateUnit):
