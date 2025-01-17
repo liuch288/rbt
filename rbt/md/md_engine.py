@@ -60,10 +60,10 @@ class MdEngine(object):
             end_time = cur_time + pd.DateOffset(seconds=period)
             return self.raw_md[
                 (self.raw_md.index >= cur_time) & (self.raw_md.index <= end_time)
-            ]
+            ].copy()
         elif mds is not None:
             end_index = self.current_index + mds + 1
-            return self.raw_md.iloc[self.current_index : end_index]
+            return self.raw_md.iloc[self.current_index : end_index].copy()
         else:
             raise ValueError("One of 'period' or 'mds' must be provided.")
 
