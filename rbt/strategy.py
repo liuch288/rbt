@@ -2,7 +2,7 @@ import pandas as pd
 from progressbar import Bar, ETA, Timer, Percentage, ProgressBar
 
 from .md import MdEngine
-from .dmu import DecisionMakingUnit
+from .dmu import DecisionMakingUnit, PositionPnlDMU
 from .peu import PnlEstimateUnit
 from .result_db import ResultDB
 
