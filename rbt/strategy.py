@@ -10,12 +10,18 @@ from .result_db import ResultDB
 class Strategy(object):
     def __init__(self) -> None:
         self.dmus = []
+        self.recalculate_dmu_names = []
         self.peus = []
+        self.recalculate_peu_names = []
 
-    def register_dmu(self, dmu: DecisionMakingUnit):
+    def register_dmu(self, dmu: DecisionMakingUnit, recalculate:bool=False):
+        if recalculate:
+            self.recalculate_dmu_names.append(dmu.name)
         self.dmus.append(dmu)
 
-    def register_peu(self, peu: PnlEstimateUnit):
+    def register_peu(self, peu: PnlEstimateUnit, recalculate:bool=False):
+        if recalculate:
+            self.recalculate_peu_names.append(peu.name)
         self.peus.append(peu)
 
     def register_md_engine(self, md_engine: MdEngine):
