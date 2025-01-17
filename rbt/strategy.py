@@ -31,7 +31,8 @@ class Strategy(object):
         self.result_db = result_db
 
     def run(self, show_progress: bool = False):
-        # 首先看哪些unit需要计算
+        # STEP 1: 加入需要计算的DMU
+        # 用户DMU
         cur_sym = self.md_engine.cur_sym
         cur_date = self.md_engine.cur_date
         existed_cols = self.result_db.get_existed_columns(cur_sym, cur_date)
@@ -39,12 +40,16 @@ class Strategy(object):
         for dmu in self.dmus:
             if not any(col.startswith(dmu.name) for col in existed_cols):
                 new_dmus.append(dmu)
+        # 后置平台DMU
+        new_dmus.append(PositionPnlDMU())
+
+        # STEP 2: 加入需要计算的PEU
         new_peus = []
         for peu in self.peus:
             if not any(col.startswith(peu.name) for col in existed_cols):
                 new_peus.append(peu)
 
-        # 执行运算
+        # STEP 3: 执行运算
         self.unit_results = {}
         if show_progress:
             widgets = ["Testing:", Percentage(), " ", Bar(), " ", ETA(), ", ", Timer()]
@@ -84,6 +89,6 @@ class Strategy(object):
         if show_progress:
             bar.finish()
         
-        # 保存结果
+        # STEP 4: 保存结果
         new_data = pd.DataFrame.from_dict(self.unit_results, orient="index")
         self.result_db.save_data(cur_sym, cur_date, new_data)
