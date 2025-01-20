@@ -40,6 +40,13 @@ class ResultDB(object):
             new_data.to_pickle(path, compression="gzip")
         return None
 
+    def get_data(self, sym: str, date: datetime.date) -> list:
+        path = self._get_path(sym, date)
+        if os.path.exists(path):
+            data = pd.read_pickle(path, compression="gzip")
+            return data
+        return None
+
     def _get_path(self, sym: str, date: datetime.date) -> pd.DataFrame:
         path = os.path.join(self.db_directory, f"{sym}_{str(date)}.pkl")
         return path
