@@ -31,11 +31,14 @@ class Strategy(object):
         self.result_db = result_db
 
     def run(self, show_progress: bool = False):
-        # STEP 1: 加入需要计算的DMU
-        # 用户DMU
+        # STEP 1: 读入已有数据
         cur_sym = self.md_engine.cur_sym
         cur_date = self.md_engine.cur_date
-        existed_cols = self.result_db.get_existed_columns(cur_sym, cur_date)
+        existed_data = self.result_db.get_data(cur_sym, cur_date)
+        existed_cols = existed_data.columns
+
+        # STEP 2: 加入需要计算的DMU
+        # 用户DMU
         new_dmus = []
         for dmu in self.dmus:
             if not any(col.startswith(dmu.name) for col in existed_cols):
@@ -43,13 +46,13 @@ class Strategy(object):
         # 后置平台DMU
         new_dmus.append(PositionPnlDMU())
 
-        # STEP 2: 加入需要计算的PEU
+        # STEP 3: 加入需要计算的PEU
         new_peus = []
         for peu in self.peus:
             if not any(col.startswith(peu.name) for col in existed_cols):
                 new_peus.append(peu)
 
-        # STEP 3: 执行运算
+        # STEP 4: 执行运算
         self.unit_results = {}
         if show_progress:
             widgets = ["Testing:", Percentage(), " ", Bar(), " ", ETA(), ", ", Timer()]
@@ -62,7 +65,7 @@ class Strategy(object):
                 break
             cur_time = new_md.name
 
-            unit_results = {}
+            unit_results = existed_data.loc[cur_time].to_dict()
             for dmu in new_dmus:
                 dmu_name = dmu.name
                 result = dmu.on_market_data(new_md, unit_results)
@@ -89,6 +92,6 @@ class Strategy(object):
         if show_progress:
             bar.finish()
         
-        # STEP 4: 保存结果
+        # STEP 5: 保存结果
         new_data = pd.DataFrame.from_dict(self.unit_results, orient="index")
         self.result_db.save_data(cur_sym, cur_date, new_data)
