@@ -35,6 +35,8 @@ class Strategy(object):
         cur_sym = self.md_engine.cur_sym
         cur_date = self.md_engine.cur_date
         existed_data = self.result_db.get_data(cur_sym, cur_date)
+        if existed_data is None:
+            existed_data = pd.DataFrame()
         existed_cols = existed_data.columns
 
         # STEP 2: 加入需要计算的DMU
@@ -64,8 +66,10 @@ class Strategy(object):
             if new_md is None:
                 break
             cur_time = new_md.name
-
-            unit_results = existed_data.loc[cur_time].to_dict()
+            
+            unit_results = {}
+            if cur_time in existed_data.index:
+                unit_results = existed_data.loc[cur_time].to_dict()
             for dmu in new_dmus:
                 dmu_name = dmu.name
                 result = dmu.on_market_data(new_md, unit_results)
