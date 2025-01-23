@@ -3,6 +3,7 @@ import unittest
 import pandas as pd
 
 from rbt.ic import *
+from rbt.dmu import *
 
 
 class TestMeanIC(unittest.TestCase):
@@ -305,6 +306,64 @@ class TestRollingKlineIC(unittest.TestCase):
         # 检查更新后的结果
         expected_result = {"open": 102, "close": 106, "high": 106, "low": 101}
         self.assertEqual(kline_ic.result, expected_result)
+
+
+class TestPositionGenDMU(unittest.TestCase):
+
+    def test_add_rule(self):
+        dmu = PositionGenDMU()
+        dmu.add_rule("rule1", 'prev_result["MA"] > 0', 1)
+        dmu.add_rule(
+            "rule2",
+            'prev_result["KDJ"] == 0 and prev_result["std"] < 0',
+            -1,
+            smooth=True,
+        )
+        self.assertIn(("rule1", 'prev_result["MA"] > 0', 1, False), dmu.rules)
+        self.assertIn(
+            ("rule2", 'prev_result["KDJ"] == 0 and prev_result["std"] < 0', -1, True),
+            dmu.rules,
+        )
+        self.assertTrue(isinstance(dmu.smoother["rule2"], SmoothIC))
+
+    def test_make_decision_single_rule(self):
+        dmu = PositionGenDMU()
+        dmu.add_rule("rule1", 'prev_result["MA"] > 0', 1)
+        decision = dmu.on_market_data(None, {"MA": 0.5})
+        self.assertEqual(decision["rule1_position"], 1)
+        decision = dmu.on_market_data(None, {"MA": -0.5})
+        self.assertEqual(decision["rule1_position"], 0)
+
+    def test_make_decision_multiple_rules(self):
+        dmu = PositionGenDMU()
+        dmu.add_rule("rule1", 'prev_result["MA"] > 0', 1)
+        dmu.add_rule("rule2", 'prev_result["KDJ"] == 0 and prev_result["std"] < 0', -1)
+        decision = dmu.on_market_data(None, {"MA": 0.5, "KDJ": 0, "std": -0.5})
+        self.assertEqual(decision["rule1_position"], 1)
+        self.assertEqual(decision["rule2_position"], -1)
+        decision = dmu.on_market_data(None, {"MA": -0.5, "KDJ": 1, "std": 0.5})
+        self.assertEqual(decision["rule1_position"], 0)
+        self.assertEqual(decision["rule2_position"], 0)
+
+    def test_make_decision_multiple_rules_smooth(self):
+        dmu = PositionGenDMU()
+        dmu.add_rule("rule1", 'prev_result["MA"] > 0', 1, True)
+        dmu.add_rule("rule2", 'prev_result["KDJ"] == 0 and prev_result["std"] < 0', -1)
+        decision = dmu.on_market_data(None, {"MA": 0.5, "KDJ": 0, "std": -0.5})
+        decision = dmu.on_market_data(None, {"MA": 0.5, "KDJ": 0, "std": -0.5})
+        self.assertEqual(decision["rule1_position"], 1)
+        self.assertEqual(decision["rule2_position"], -1)
+        decision = dmu.on_market_data(None, {"MA": -0.5, "KDJ": 1, "std": 0.5})
+        self.assertEqual(decision["rule1_position"], 1)
+        self.assertEqual(decision["rule2_position"], 0)
+
+    def test_make_decision_with_invalid_rule(self):
+        dmu = PositionGenDMU()
+        dmu.add_rule("rule1", 'prev_result["MA"] > 0', 1)
+        dmu.add_rule("rule2", 'prev_result["KDJ"] / 0', -1)
+        decision = dmu.on_market_data(None, {"MA": 0.5, "KDJ": 0})
+        self.assertEqual(decision["rule1_position"], 1)
+        self.assertEqual(decision["rule2_position"], 0)
 
 
 if __name__ == "__main__":
