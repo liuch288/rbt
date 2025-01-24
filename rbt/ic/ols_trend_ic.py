@@ -1,7 +1,7 @@
 import numpy as np
 from rbt.ic.index_calculator import IndexCalculator
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error, r2_score
 
 class OlsTrendIC(IndexCalculator):
     def __init__(self, window_size: int = 60):
@@ -25,13 +25,16 @@ class OlsTrendIC(IndexCalculator):
         # Calculate the coefficient (slope of the trend)
         coefficient = self.model.coef_[0][0]
 
-        # Calculate the R-squared (goodness of fit)
-        r_squared = r2_score(y, self.model.predict(self.x))
+        # Calculate the Mean Squared Error (MSE)
+        predictions = self.model.predict(self.x)
+        mse = mean_squared_error(y, predictions)
+        r_squared = r2_score(y, predictions)
 
         # Update the result
         self.result = {
             'coefficient': coefficient,
             'r_squared': r_squared,
+            'mse': mse,
             'window_size': self.window_size
         }
 
