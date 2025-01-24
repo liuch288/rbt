@@ -3,6 +3,7 @@ from rbt.ic.index_calculator import IndexCalculator
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
+
 class OlsTrendIC(IndexCalculator):
     def __init__(self, window_size: int = 60):
         super().__init__(window_size)
@@ -32,11 +33,8 @@ class OlsTrendIC(IndexCalculator):
 
         # Update the result
         self.result = {
-            'coefficient': coefficient,
-            'r_squared': r_squared,
-            'mse': mse,
-            'window_size': self.window_size
+            "coefficient": coefficient,
+            "r_squared": r_squared,
+            "mse": mse,
+            "window_size": self.window_size,
         }
-
-    def get_result(self):
-        return self.result
