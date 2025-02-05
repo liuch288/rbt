@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime, timedelta
 
 import pandas as pd
 
@@ -306,6 +307,54 @@ class TestRollingKlineIC(unittest.TestCase):
         # 检查更新后的结果
         expected_result = {"open": 102, "close": 106, "high": 106, "low": 101}
         self.assertEqual(kline_ic.result, expected_result)
+
+
+class TestOlsTrendIC(unittest.TestCase):
+    def setUp(self):
+        # 基准时间
+        self.test_start_time = datetime.now()
+
+        # 初始化OlsTrendIC实例
+        self.ic = OlsTrendIC(window_size=5)
+
+        # 准备测试数据
+        self.test_data = [
+            {"time": self.test_start_time, "value": 1.0},
+            {"time": self.test_start_time + timedelta(seconds=1), "value": 2.0},
+            {"time": self.test_start_time + timedelta(seconds=2), "value": 3.0},
+            {"time": self.test_start_time + timedelta(seconds=3), "value": 4.0},
+            {"time": self.test_start_time + timedelta(seconds=4), "value": 5.0},
+            {"time": self.test_start_time + timedelta(seconds=5), "value": 6.0},
+        ]
+
+    def test_ols_trend_ic(self):
+        # 逐步添加数据点
+        for data in self.test_data:
+            self.ic.update(data)
+
+        # 检查结果
+        result = self.ic.result
+        self.assertIsNotNone(result)  # 确保结果不为None
+        self.assertEqual(result["window_size"], 5)  # 确保窗口大小正确
+        self.assertAlmostEqual(result["coefficient"], 1.0)  # 确保系数接近1.0
+        self.assertAlmostEqual(result["intercept"], 6.0)  # 确保截距接近1.0
+        self.assertLess(result["mse"], 1e-8)  # 确保MSE较小
+        self.assertLess(1 - result["r_squared"], 1e-8)  # 确保R²接近1.0
+
+        self.ic.update(
+            {"time": self.test_start_time + timedelta(seconds=6), "value": 5.0}
+        )
+        # 检查结果
+        result = self.ic.result
+        self.assertIsNotNone(result)  # 确保结果不为None
+        self.assertAlmostEqual(
+            result["coefficient"], 0.7142857142857134
+        )  # 确保系数接近1.0
+        self.assertAlmostEqual(
+            result["intercept"], 5.952380952380952
+        )  # 确保截距接近1.0
+        self.assertAlmostEqual(result["mse"], 0.3174603174603175)  # 确保MSE较小
+        self.assertAlmostEqual(result["r_squared"], 0.8241758241758241)  # 确保R²接近1.0
 
 
 class TestPositionGenDMU(unittest.TestCase):

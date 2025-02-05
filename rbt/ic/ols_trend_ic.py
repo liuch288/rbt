@@ -27,7 +27,8 @@ class OlsTrendIC(IndexCalculator):
         all_data = pd.DataFrame(list(self.data) + [new_data])
         
         # Calculate the time differences in seconds
-        all_data['time_diff'] = (all_data['time'] - all_data['time'].iloc[0]).dt.total_seconds()
+        last_time = new_data["time"]
+        all_data['time_diff'] = (all_data['time'] - last_time).dt.total_seconds()
 
         # Prepare the X (time differences) and y (values) for regression
         X = all_data[['time_diff']].values.reshape(-1, 1)
