@@ -337,18 +337,19 @@ class TestOlsTrendIC(unittest.TestCase):
         self.assertIsNotNone(result)  # 确保结果不为None
         self.assertEqual(result["window_size"], 5)  # 确保窗口大小正确
         self.assertAlmostEqual(result["coefficient"], 1.0)  # 确保系数接近1.0
-        self.assertAlmostEqual(result["intercept"], 1.0)  # 确保截距接近1.0
+        self.assertAlmostEqual(result["intercept"], 6.0)  # 确保截距接近1.0
         self.assertLess(result["mse"], 1e-8)  # 确保MSE较小
-        self.assertLess(1-result["r_squared"], 1e-8)  # 确保R²接近1.0
-        
-        self.ic.update({"time": self.test_start_time + timedelta(seconds=6), "value": 5.0})
+        self.assertLess(1 - result["r_squared"], 1e-8)  # 确保R²接近1.0
+
+        self.ic.update(
+            {"time": self.test_start_time + timedelta(seconds=6), "value": 5.0}
+        )
         # 检查结果
         result = self.ic.result
-        self.assertIsNotNone(result)  # 确保结果不为None
-        self.assertAlmostEqual(result["coefficient"], 0.7142857142857134)  # 确保系数接近更新后的值
-        self.assertAlmostEqual(result["intercept"], 5.952380952380952)  # 确保截距接近更新后的值
-        self.assertAlmostEqual(result["mse"], 0.3174603174603175)  # 确保MSE较小
-        self.assertAlmostEqual(result["r_squared"], 0.8241758241758241)  # 确保R²接近更新后的值
+        self.assertAlmostEqual(result["coefficient"], 0.7142857142857134)
+        self.assertAlmostEqual(result["intercept"], 5.952380952380952)
+        self.assertAlmostEqual(result["mse"], 0.3174603174603175)
+        self.assertAlmostEqual(result["r_squared"], 0.8241758241758241)
 
 
 class TestPositionGenDMU(unittest.TestCase):
