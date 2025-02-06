@@ -1,8 +1,8 @@
 import os
 
 # 要跳过的文件夹和文件
-skip_folders = ['__pycache__', ".git"]
-skip_files = ['.gitignore', os.path.basename(__file__)]
+skip_folders = ["__pycache__", ".git"]
+skip_files = [".gitignore", os.path.basename(__file__), "rbt_py.txt", "simple_biquote_peu.py"]
 
 # 获取当前脚本所在目录
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -20,12 +20,12 @@ for root, dirs, files in os.walk(current_dir):
             # 打印文件路径和文件名
             print(f"文件路径及文件名: {file_path}")
             # 读取文件内容
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
                 # 打印文件内容
                 print(content)
             # 打印分割线
-            print('-' * 80)
+            print("-" * 80)
         except Exception as e:
             print(f"读取文件 {file_path} 时出错: {e}")
-            print('-' * 80)
+            print("-" * 80)
