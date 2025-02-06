@@ -21,7 +21,7 @@ class OlsTrendIC(IndexCalculator):
         """
         # Ensure we have enough data points
         if len(self.data) < self.window_size:
-            self.result = None
+            self.result = {}
             return
 
         all_data = pd.DataFrame(list(self.data) + [new_data])
