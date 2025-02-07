@@ -2,7 +2,7 @@ import os
 
 # 要跳过的文件夹和文件
 skip_folders = ["__pycache__", ".git"]
-skip_files = [".gitignore", os.path.basename(__file__), "rbt_py.txt", "simple_biquote_peu.py"]
+skip_files = [".gitignore", os.path.basename(__file__), "rbt_py.txt"]
 
 # 获取当前脚本所在目录
 current_dir = os.path.dirname(os.path.abspath(__file__))
