@@ -1,5 +1,6 @@
 from .pnl_estimate_unit import PnlEstimateUnit
 
+
 class SimpleBiquotePEU(PnlEstimateUnit):
     """
     简单双边下单PEU
@@ -37,16 +38,26 @@ class SimpleBiquotePEU(PnlEstimateUnit):
         return f"{self.bid_price_key}_{self.ask_price_key}_{self.watching_time}"
 
     def estimate(self, future_data, previous_result, *args, **kwargs) -> dict:
-        # 准备变量
+        # 确定报单价格
         buy_px = previous_result[self.bid_price_key]
         sell_px = previous_result[self.ask_price_key]
+        if buy_px is None or sell_px is None:
+            return {
+                "pnl": 0.0,
+                "buy_executed": False,
+                "buy_exec_time": None,
+                "sell_executed": False,
+                "sell_exec_time": None,
+            }
+
+        # 准备变量
         first_md = future_data.iloc[0]
         last_md = future_data.iloc[-1]
         buy_executed = False
         buy_exec_time = None
         sell_executed = False
         sell_exec_time = None
-        
+
         # 判定买单是否立即成交
         if first_md["ask_px1"] <= buy_px:
             buy_executed = True
