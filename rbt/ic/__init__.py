@@ -3,6 +3,7 @@ from .first_hit_ic import FirstHitIC
 from .index_calculator import IndexCalculator
 from .mean_ic import MeanIC
 from .mos_recover_ic import MosRecoverIC
+from .ols_trend_ic import OlsTrendIC
 from .rolling_kline_ic import RollingKlineIC
 from .smooth_ic import SmoothIC
 from .sum_ic import SumIC
