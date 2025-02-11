@@ -45,6 +45,8 @@ class Strategy(object):
         for dmu in self.dmus:
             if not any(col.startswith(dmu.name) for col in existed_cols):
                 new_dmus.append(dmu)
+            elif dmu.name in self.recalculate_dmu_names:
+                new_dmus.append(dmu)
         # 后置平台DMU
         new_dmus.append(PositionPnlDMU())
 
@@ -52,6 +54,8 @@ class Strategy(object):
         new_peus = []
         for peu in self.peus:
             if not any(col.startswith(peu.name) for col in existed_cols):
+                new_peus.append(peu)
+            elif peu.name in self.recalculate_peu_names:
                 new_peus.append(peu)
 
         # STEP 4: 执行运算
