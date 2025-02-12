@@ -3,7 +3,7 @@ from ..ic import SumIC
 
 
 class NetBuyDMU(DecisionMakingUnit):
-    version = "v1"
+    version = "v0"
 
     def __init__(self, large_order_threshold: int = 10, sum_period: int = 120):
         super().__init__()
