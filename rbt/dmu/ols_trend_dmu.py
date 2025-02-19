@@ -3,14 +3,17 @@ from ..ic import OlsTrendIC
 
 
 class OlsTrendDMU(DecisionMakingUnit):
-    def __init__(self, window_size: int = 60):
+    version = "v1"
+    
+    def __init__(self, window_size: int = 60, order: int = 1):
         super().__init__()
         self.window_size = window_size
-        self.ols_trend_ic = OlsTrendIC(window_size)
+        self.order = order
+        self.ols_trend_ic = OlsTrendIC(window_size, order)
         self.update_unit_name()
 
     def get_param_str(self):
-        return str(self.window_size)
+        return f"{self.order}_{str(self.window_size)}"
     
     def make_decision(self, new_data: dict, previous_result: dict = {}) -> dict:
         # Calculate the average of bid_px1 and ask_px1
