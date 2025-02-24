@@ -352,6 +352,43 @@ class TestOlsTrendIC(unittest.TestCase):
         self.assertAlmostEqual(result["r_squared"], 0.8241758241758241)
 
 
+class TestPriceFrequencyIC(unittest.TestCase):
+
+    def setUp(self):
+        # 在每个测试方法之前执行
+        self.period = 3
+        self.ic = PriceFrequencyIC(self.period)
+
+    def test_initialization(self):
+        # 测试初始化
+        self.assertEqual(self.ic.period, self.period)
+        self.assertEqual(self.ic.price_counts, {})
+        self.assertEqual(self.ic.result, None)
+
+    def test_update(self):
+        # 测试更新方法
+        test_data = [1, 2, 3, 2, 1]
+        expected_results = [
+            {1: 1},  # 添加第一个数据
+            {1: 1, 2: 1},  # 添加第二个数据
+            {1: 1, 2: 1, 3:1},  # 添加第三个数据，第二个数据频数增加
+            {2: 2, 3: 1},  # 移除第一个数据，添加第四个数据
+            {2: 1, 3: 1, 1: 1}  # 添加第五个数据
+        ]
+
+        for i, data in enumerate(test_data):
+            self.ic.update(data)
+            self.assertEqual(self.ic.result, expected_results[i])
+
+    def test_reset(self):
+        # 测试重置方法
+        self.ic.update(1)
+        self.ic.update(2)
+        self.ic.reset()
+        self.assertEqual(self.ic.price_counts, {})
+        self.assertEqual(self.ic.result, {})
+
+
 class TestPositionGenDMU(unittest.TestCase):
 
     def test_add_rule(self):
