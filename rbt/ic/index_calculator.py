@@ -17,6 +17,7 @@ class IndexCalculator:
         self.data_count += 1
         self.calculate(new_data)
         self.data.append(new_data)
+        self.calculate_after_insertion()
         return self.result
 
     def calculate(self, new_data):
@@ -24,6 +25,12 @@ class IndexCalculator:
         计算指标的具体实现，需要在子类中重写。
         """
         raise NotImplementedError("Subclasses should implement this!")
+    
+    def calculate_after_insertion(self):
+        """
+        在数据插入后进行的计算，可以在子类中重写。
+        """
+        pass
 
     def reset(self):
         """

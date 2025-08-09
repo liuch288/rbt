@@ -26,8 +26,9 @@ class MdDMU(DecisionMakingUnit):
         bid_smo = self.bid_filter.update(bid_px1)
         ask_smo = self.ask_filter.update(ask_px1)
         mid_smo = (bid_smo + ask_smo) / 2
-        mean_px = round(self.mean_ic.update(mid_smo), 4)
-        std = round(self.variance_ic.update(mid_smo), 9) ** 0.5
+        mean_px = self.mean_ic.update(mid_smo)
+        variance = self.variance_ic.update(mid_smo)
+        std = variance**0.5 if variance > 0 else 0
         quantile = (mid_smo - mean_px) / std if std > 1e-8 else 0
         ob_avg = (bid_px1 * ask_sz1 + ask_px1 * bid_sz1) / (bid_sz1 + ask_sz1)
         cum_avg = (
