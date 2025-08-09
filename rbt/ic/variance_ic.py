@@ -12,6 +12,7 @@ class VarianceIC(IndexCalculator):
         """
         方差 = 平方的期望 - 期望的平方
         """
-        exp_of_squared_val = self.exp_squared.update(new_data**2)
-        squared_exp_val = self.exp.update(new_data) ** 2
+        exp_of_squared_val = self.exp_squared.update(new_data*new_data)
+        exp_val = self.exp.update(new_data)
+        squared_exp_val = exp_val * exp_val
         self.result = exp_of_squared_val - squared_exp_val
