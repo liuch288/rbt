@@ -8,18 +8,19 @@ from .result_db import ResultDB
 
 
 class Strategy(object):
-    def __init__(self) -> None:
+    def __init__(self, position_pnl_dmu_class=PositionPnlDMU) -> None:
         self.dmus = []
         self.recalculate_dmu_names = []
         self.peus = []
         self.recalculate_peu_names = []
+        self.position_pnl_dmu_class = position_pnl_dmu_class
 
-    def register_dmu(self, dmu: DecisionMakingUnit, recalculate:bool=False):
+    def register_dmu(self, dmu: DecisionMakingUnit, recalculate: bool = False):
         if recalculate:
             self.recalculate_dmu_names.append(dmu.name)
         self.dmus.append(dmu)
 
-    def register_peu(self, peu: PnlEstimateUnit, recalculate:bool=False):
+    def register_peu(self, peu: PnlEstimateUnit, recalculate: bool = False):
         if recalculate:
             self.recalculate_peu_names.append(peu.name)
         self.peus.append(peu)
@@ -48,7 +49,7 @@ class Strategy(object):
             elif dmu.name in self.recalculate_dmu_names:
                 new_dmus.append(dmu)
         # 后置平台DMU
-        new_dmus.append(PositionPnlDMU())
+        new_dmus.append(self.position_pnl_dmu_class())
 
         # STEP 3: 加入需要计算的PEU
         new_peus = []
@@ -70,7 +71,7 @@ class Strategy(object):
             if new_md is None:
                 break
             cur_time = new_md.name
-            
+
             unit_results = {}
             if cur_time in existed_data.index:
                 unit_results = existed_data.loc[cur_time].to_dict()
@@ -95,11 +96,11 @@ class Strategy(object):
 
             if show_progress:
                 step_count += 1
-                bar.update(step_count)       
+                bar.update(step_count)
 
         if show_progress:
             bar.finish()
-        
+
         # STEP 5: 保存结果
         new_data = pd.DataFrame.from_dict(self.unit_results, orient="index")
         self.result_db.save_data(cur_sym, cur_date, new_data)
