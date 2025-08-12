@@ -8,9 +8,6 @@ class PositionPnlDMU(DecisionMakingUnit):
         super().__init__()
         self.positions = {}  # 用于存储之前的位置和成本
 
-    def on_market_data(self, new_data, previous_result: dict = {}):
-        return self.make_decision(new_data, previous_result)
-
     def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         pnl_results = {}
         for key, current_position in previous_result.items():
