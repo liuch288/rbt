@@ -55,8 +55,8 @@ class BiquoteClosePEU(PnlEstimateUnit):
         )
         ask_vol_at_same_level = 0
         for i in range(1, 6):
-            cur_level_price = init_md[f"bid_px{i}"]
-            cur_level_vol = init_md[f"bid_sz{i}"]
+            cur_level_price = init_md[f"ask_px{i}"]
+            cur_level_vol = init_md[f"ask_sz{i}"]
             if cur_level_price == sell_order_price:
                 ask_vol_at_same_level = cur_level_vol
             elif cur_level_price > sell_order_price:
