@@ -66,7 +66,6 @@ class BiquoteClosePEU(PnlEstimateUnit):
         # 逐行核对是否成交
         inventory = 0
         pnl = 0.0
-        future_data_len = len(future_data)
         # 此处-3是因为最后3行要用于判定平仓价格
         buy_order_executed = False
         buy_order_exec_time = None
@@ -120,6 +119,9 @@ class BiquoteClosePEU(PnlEstimateUnit):
                     break
                 else:
                     if closing_order is None:
+                        # 计算平仓价格（保护：inventory不应为0）
+                        if inventory == 0:
+                            break
                         price = -round(pnl / inventory, self.digits)
                         if inventory > 0:
                             dir = -1
