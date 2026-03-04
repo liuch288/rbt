@@ -119,9 +119,6 @@ class BiquoteClosePEU(PnlEstimateUnit):
                     break
                 else:
                     if closing_order is None:
-                        # 计算平仓价格（保护：inventory不应为0）
-                        if inventory == 0:
-                            break
                         price = -round(pnl / inventory, self.digits)
                         if inventory > 0:
                             dir = -1
