@@ -327,7 +327,8 @@ class MosRecoverIC(IndexCalculator):
                     self.result = self.mo_recover_func(
                         self.last_lob, new_data, self.tick_size, self.hands, True
                     )
-                except:
+                except Exception as e:
+                    print(f"MosRecoverIC failed during market session transition: {e}")
                     self.result = []
             else:
                 self.result = self.mo_recover_func(
