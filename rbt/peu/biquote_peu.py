@@ -93,8 +93,8 @@ class BiquotePEU(PnlEstimateUnit):
         )
         ask_vol_at_same_level = 0
         for i in range(1, 6):
-            cur_level_price = init_md[f"bid_px{i}"]
-            cur_level_vol = init_md[f"bid_sz{i}"]
+            cur_level_price = init_md[f"ask_px{i}"]
+            cur_level_vol = init_md[f"ask_sz{i}"]
             if cur_level_price == sell_order_price:
                 ask_vol_at_same_level = cur_level_vol
             elif cur_level_price > sell_order_price:
@@ -104,7 +104,7 @@ class BiquotePEU(PnlEstimateUnit):
         # 逐行核对是否成交
         inventory = 0
         pnl = 0.0
-        future_data_len = len(future_data)
+        # future_data_len = len(future_data)
         # 此处-3是因为最后3行要用于判定平仓价格
         buy_order_executed = False
         buy_order_exec_time = None
