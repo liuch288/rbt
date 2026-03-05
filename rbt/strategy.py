@@ -31,7 +31,7 @@ class Strategy(object):
     def register_result_db(self, result_db: ResultDB):
         self.result_db = result_db
 
-    def run(self, show_progress: bool = False):
+    def run(self, show_progress: bool = False, bgm: dict = None):
         # STEP 1: 读入已有数据
         cur_sym = self.md_engine.cur_sym
         cur_date = self.md_engine.cur_date
@@ -61,6 +61,8 @@ class Strategy(object):
 
         # STEP 4: 执行运算
         self.unit_results = {}
+        if bgm is None:
+            bgm = {}
         if show_progress:
             widgets = ["Testing:", Percentage(), " ", Bar(), " ", ETA(), ", ", Timer()]
             bar = ProgressBar(maxval=len(self.md_engine.raw_md), widgets=widgets)
@@ -75,6 +77,7 @@ class Strategy(object):
             unit_results = {}
             if cur_time in existed_data.index:
                 unit_results = existed_data.loc[cur_time].to_dict()
+            unit_results.update(bgm)
             for dmu in new_dmus:
                 dmu_name = dmu.name
                 result = dmu.on_market_data(new_md, unit_results)

@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**Version:** 0.3
+**Version:** 0.5
 
 A lightweight, modular backtesting framework for rule-based quantitative trading strategies.
 
@@ -94,6 +94,34 @@ strategy.register_result_db(ResultDB(...))
 
 # Run backtest
 strategy.run(show_progress=True)
+
+## Advanced Usage
+
+### BGM (Backtest Global Parameters)
+
+The `run()` method supports an optional `bgm` parameter for passing daily fixed parameters to all factor calculators:
+
+```python
+# Run with bgm parameters
+bgm = {
+    "date": "2026-03-05",
+    "factor_a": 1.0,
+    "factor_b": 0.5,
+    "custom_field": "value"
+}
+strategy.run(bgm=bgm)
+```
+
+**Features:**
+- `bgm` is a `dict` that defaults to `{}` (empty dict)
+- BGM parameters are merged into `unit_results` on each iteration
+- Both DMU and PEU can access BGM fields via `unit_results`
+- Fully backward compatible (omit `bgm` for default behavior)
+
+**Use cases:**
+- Pass daily factors or parameters to all calculators
+- Inject experiment variables for A/B testing
+- Set date-specific constants accessible throughout the backtest
 ```
 
 ## Dependencies
