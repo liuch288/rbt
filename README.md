@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**Version:** 0.5
+**Version:** 0.6
 
 A lightweight, modular backtesting framework for rule-based quantitative trading strategies.
 
@@ -78,6 +78,8 @@ rbt/
 
 ## Usage
 
+### Backtest Mode
+
 ```python
 from rbt import Strategy
 from rbt.md import MdEngine
@@ -94,6 +96,22 @@ strategy.register_result_db(ResultDB(...))
 
 # Run backtest
 strategy.run(show_progress=True)
+```
+
+### Realtime Mode
+
+```python
+from rbt import RealtimeStrategy
+from rbt.dmu import TrendDMU
+
+# Initialize
+strategy = RealtimeStrategy()
+strategy.register_dmu(TrendDMU())
+
+# Process single tick
+new_md = pd.Series({"price": 100, "volume": 1000})
+result = strategy.run_once(new_md)
+```
 
 ## Advanced Usage
 
