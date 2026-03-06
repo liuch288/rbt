@@ -118,7 +118,6 @@ class KlineDMU(DecisionMakingUnit):
             self.kline_low = None
             self.kline_init_volume = cumulative_volume
             self.kline_init_oi = cumulative_oi
-            self.update_end_time_required = True
             return res        
 
         res = {
@@ -136,26 +135,26 @@ class KlineDMU(DecisionMakingUnit):
 
 
 
-# 示例使用
-if __name__ == "__main__":
-    kline_dmu = KlineDMU(interval=1)
+# # 示例使用
+# if __name__ == "__main__":
+#     kline_dmu = KlineDMU(interval=1)
 
-    # 模拟一些行情数据
-    tick_data_stream = [
-        {"name": datetime.datetime(2023, 4, 17, 9, 30), "last_px": 101, "tot_sz": 100, "oi": 23},
-        {"name": datetime.datetime(2023, 4, 17, 9, 30, 30), "last_px": 102, "tot_sz": 104, "oi": 25},
-        {"name": datetime.datetime(2023, 4, 17, 9, 31), "last_px": 99, "tot_sz": 105, "oi": 13},
-        {"name": datetime.datetime(2023, 4, 17, 9, 31, 15), "last_px": 105, "tot_sz": 110, "oi": 2},
-        {"name": datetime.datetime(2023, 4, 17, 9, 32), "last_px": 103, "tot_sz": 180, "oi": 23},
-        {"name": datetime.datetime(2023, 4, 17, 9, 33), "last_px": 104, "tot_sz": 190, "oi": 2},
-        {"name": datetime.datetime(2023, 4, 17, 9, 34), "last_px": 106, "tot_sz": 400, "oi": 238},
-        {"name": datetime.datetime(2023, 4, 17, 9, 35), "last_px": 107, "tot_sz": 700, "oi": 23},
-        {"name": datetime.datetime(2023, 4, 17, 9, 36), "last_px": 108, "tot_sz": 1900, "oi": 233},
-        {"name": datetime.datetime(2023, 4, 17, 9, 36, 3), "last_px": 109, "tot_sz": 3500, "oi": 23333},
-        {"name": datetime.datetime(2023, 4, 17, 10, 37), "last_px": 120, "tot_sz": 3700, "oi": 13333},
-        {"name": datetime.datetime(2023, 4, 17, 10, 38), "last_px": 109, "tot_sz": 3500, "oi": 23333},
-    ]
+#     # 模拟一些行情数据
+#     tick_data_stream = [
+#         {"name": datetime.datetime(2023, 4, 17, 9, 30), "last_px": 101, "tot_sz": 100, "oi": 23},
+#         {"name": datetime.datetime(2023, 4, 17, 9, 30, 30), "last_px": 102, "tot_sz": 104, "oi": 25},
+#         {"name": datetime.datetime(2023, 4, 17, 9, 31), "last_px": 99, "tot_sz": 105, "oi": 13},
+#         {"name": datetime.datetime(2023, 4, 17, 9, 31, 15), "last_px": 105, "tot_sz": 110, "oi": 2},
+#         {"name": datetime.datetime(2023, 4, 17, 9, 32), "last_px": 103, "tot_sz": 180, "oi": 23},
+#         {"name": datetime.datetime(2023, 4, 17, 9, 33), "last_px": 104, "tot_sz": 190, "oi": 2},
+#         {"name": datetime.datetime(2023, 4, 17, 9, 34), "last_px": 106, "tot_sz": 400, "oi": 238},
+#         {"name": datetime.datetime(2023, 4, 17, 9, 35), "last_px": 107, "tot_sz": 700, "oi": 23},
+#         {"name": datetime.datetime(2023, 4, 17, 9, 36), "last_px": 108, "tot_sz": 1900, "oi": 233},
+#         {"name": datetime.datetime(2023, 4, 17, 9, 36, 3), "last_px": 109, "tot_sz": 3500, "oi": 23333},
+#         {"name": datetime.datetime(2023, 4, 17, 10, 37), "last_px": 120, "tot_sz": 3700, "oi": 13333},
+#         {"name": datetime.datetime(2023, 4, 17, 10, 38), "last_px": 109, "tot_sz": 3500, "oi": 23333},
+#     ]
 
-    for i, tick_data in enumerate(tick_data_stream):
-        kline_result = kline_dmu.make_decision(tick_data)
-        print(f"Tick {i+1}: {tick_data}, Kline: {kline_result}")
+#     for i, tick_data in enumerate(tick_data_stream):
+#         kline_result = kline_dmu.make_decision(tick_data)
+#         print(f"Tick {i+1}: {tick_data}, Kline: {kline_result}")
