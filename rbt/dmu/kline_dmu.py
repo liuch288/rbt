@@ -36,10 +36,7 @@ class KlineDMU(DecisionMakingUnit):
         """
         return f"{self.interval}min"
 
-    def make_decision(self, new_data, previous_result: dict = None) -> dict:
-        if previous_result is None:
-            previous_result = {}
-
+    def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         current_time = new_data.name  # 当前时间
         cumulative_volume = new_data["tot_sz"]
         cumulative_oi = new_data["oi"]
@@ -60,41 +57,42 @@ class KlineDMU(DecisionMakingUnit):
             self.kline_oi_diff = 0
 
             # 追赶到当前时间
-            while self.current_kline_end < current_time:
+            while self.current_kline_end <= current_time:
                 self.current_kline_end += datetime.timedelta(minutes=self.interval)
 
         # 如果k线走完且当前行情戳不计入k线
         if self.current_kline_end < current_time:
-            res = {
-                "open": self.kline_open,
-                "high": self.kline_high,
-                "low": self.kline_low,
-                "close": self.kline_close,
-                "volume": self.kline_volume,
-                "oi_diff": self.kline_oi_diff,
-                "end_time": self.current_kline_end,
-                "completed": True,
-            }
             # 跳到下一根K线
             while self.current_kline_end < current_time:
                 self.current_kline_end += datetime.timedelta(minutes=self.interval)
-            # 重置K线数据，使用当前累计值作为起点
-            self.kline_open = last_price
-            self.kline_high = last_price
-            self.kline_low = last_price
-            self.kline_close = last_price
-            self.kline_init_volume = cumulative_volume  # FIX: 使用累计值而非累加
-            self.kline_init_oi = cumulative_oi  # FIX: 使用累计值而非累加
-            self.kline_volume = 0
-            self.kline_oi_diff = 0
-            return res
+            # 如果新k线没结束，则记录数据
+            if current_time < self.current_kline_end:
+                res = {
+                    "open": self.kline_open,
+                    "high": self.kline_high,
+                    "low": self.kline_low,
+                    "close": self.kline_close,
+                    "volume": self.kline_volume,
+                    "oi_diff": self.kline_oi_diff,
+                    "end_time": self.current_kline_end,
+                    "completed": True,
+                }
+                # 重置K线数据，使用当前累计值作为起点
+                self.kline_open = last_price
+                self.kline_high = last_price
+                self.kline_low = last_price
+                self.kline_close = last_price
+                self.kline_volume = cumulative_volume - self.kline_init_volume
+                self.kline_oi_diff = cumulative_oi - self.kline_init_oi
+                self.kline_init_volume += self.kline_volume
+                self.kline_init_oi += self.kline_oi_diff
+                return res
 
         # 如果当前行情戳计入K线
-        if self.kline_open is None:
-            self.kline_open = last_price
+        self.kline_open = last_price if self.kline_open is None else self.kline_open
         self.kline_close = last_price
-        self.kline_high = max(self.kline_high, last_price)
-        self.kline_low = min(self.kline_low, last_price)
+        self.kline_high = last_price if self.kline_high is None else max(self.kline_high, self.kline_close)
+        self.kline_low = last_price if self.kline_low is None else min(self.kline_low, self.kline_close)
         self.kline_volume = cumulative_volume - self.kline_init_volume
         self.kline_oi_diff = cumulative_oi - self.kline_init_oi
 
@@ -110,16 +108,54 @@ class KlineDMU(DecisionMakingUnit):
                 "end_time": self.current_kline_end,
                 "completed": True,
             }
+            # 跳到下一根K线
+            while self.current_kline_end <= current_time:
+                self.current_kline_end += datetime.timedelta(minutes=self.interval)
             # 重置K线数据，为下一根K线做准备
             self.kline_open = None
             self.kline_close = None
             self.kline_high = None
             self.kline_low = None
-            self.kline_init_volume = cumulative_volume  # FIX: 使用累计值作为下一根K线的起点
-            self.kline_init_oi = cumulative_oi  # FIX: 使用累计值作为下一根K线的起点
-            self.kline_volume = 0
-            self.kline_oi_diff = 0
-            return res
+            self.kline_init_volume = cumulative_volume
+            self.kline_init_oi = cumulative_oi
+            self.update_end_time_required = True
+            return res        
 
-        # K线尚未完成
-        return {"completed": False}
+        res = {
+            "open": self.kline_open,
+            "high": self.kline_high,
+            "low": self.kline_low,
+            "close": self.kline_close,
+            "volume": self.kline_volume,
+            "oi_diff": self.kline_oi_diff,
+            "end_time": self.current_kline_end,
+            "completed": False
+        }
+        return res
+
+
+
+
+# 示例使用
+if __name__ == "__main__":
+    kline_dmu = KlineDMU(interval=1)
+
+    # 模拟一些行情数据
+    tick_data_stream = [
+        {"name": datetime.datetime(2023, 4, 17, 9, 30), "last_px": 101, "tot_sz": 100, "oi": 23},
+        {"name": datetime.datetime(2023, 4, 17, 9, 30, 30), "last_px": 102, "tot_sz": 104, "oi": 25},
+        {"name": datetime.datetime(2023, 4, 17, 9, 31), "last_px": 99, "tot_sz": 105, "oi": 13},
+        {"name": datetime.datetime(2023, 4, 17, 9, 31, 15), "last_px": 105, "tot_sz": 110, "oi": 2},
+        {"name": datetime.datetime(2023, 4, 17, 9, 32), "last_px": 103, "tot_sz": 180, "oi": 23},
+        {"name": datetime.datetime(2023, 4, 17, 9, 33), "last_px": 104, "tot_sz": 190, "oi": 2},
+        {"name": datetime.datetime(2023, 4, 17, 9, 34), "last_px": 106, "tot_sz": 400, "oi": 238},
+        {"name": datetime.datetime(2023, 4, 17, 9, 35), "last_px": 107, "tot_sz": 700, "oi": 23},
+        {"name": datetime.datetime(2023, 4, 17, 9, 36), "last_px": 108, "tot_sz": 1900, "oi": 233},
+        {"name": datetime.datetime(2023, 4, 17, 9, 36, 3), "last_px": 109, "tot_sz": 3500, "oi": 23333},
+        {"name": datetime.datetime(2023, 4, 17, 10, 37), "last_px": 120, "tot_sz": 3700, "oi": 13333},
+        {"name": datetime.datetime(2023, 4, 17, 10, 38), "last_px": 109, "tot_sz": 3500, "oi": 23333},
+    ]
+
+    for i, tick_data in enumerate(tick_data_stream):
+        kline_result = kline_dmu.make_decision(tick_data)
+        print(f"Tick {i+1}: {tick_data}, Kline: {kline_result}")
