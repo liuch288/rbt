@@ -54,6 +54,7 @@ rbt/
 | `mo_intention_dmu` | Market order intention detection |
 | `spread_dmu` | Spread-based signals |
 | `md_dmu` | Market data driven decisions |
+| `pass_through_dmu` | Pass through raw tick data to ResultDB |
 
 ### PEU Modules
 
