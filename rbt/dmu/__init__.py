@@ -6,3 +6,4 @@ from .trend_dmu import TrendDMU
 from .ols_trend_dmu import OlsTrendDMU
 from .position_pnl_dmu import PositionPnlDMU
 from .position_gen_dmu import PositionGenDMU
+from .pass_through_dmu import PassThroughDMU
