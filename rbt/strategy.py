@@ -82,7 +82,7 @@ class Strategy(object):
                 dmu_name = dmu.name
                 result = dmu.on_market_data(new_md, unit_results)
                 for key in result.keys():
-                    unit_results[f"{dmu_name}_{key}"] = result[key]
+                    unit_results[f"{dmu_name}__{key}"] = result[key]
 
             for peu in new_peus:
                 peu_name = peu.name
@@ -91,7 +91,7 @@ class Strategy(object):
                 )
                 result = peu.estimate(future_md, unit_results)
                 for key in result.keys():
-                    unit_results[f"{peu_name}_{key}"] = result[key]
+                    unit_results[f"{peu_name}__{key}"] = result[key]
             self.unit_results[cur_time] = unit_results
 
             if not self.md_engine.finish_current_md():

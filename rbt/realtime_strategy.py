@@ -27,6 +27,6 @@ class RealtimeStrategy(object):
         for dmu in self.dmus:
             result = dmu.on_market_data(new_md, unit_results)
             for key in result.keys():
-                unit_results[f"{dmu.name}_{key}"] = result[key]
+                unit_results[f"{dmu.name}__{key}"] = result[key]
 
         return unit_results
