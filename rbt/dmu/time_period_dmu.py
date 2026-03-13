@@ -8,6 +8,7 @@ TimePeriodDMU - 根据时间划分交易时间段
 - 12:00-13:15 → E
 - 13:15-14:45 → F
 - 14:45-15:15 → G
+- 其他时间 → Z
 """
 
 import datetime
@@ -37,10 +38,6 @@ class TimePeriodDMU(DecisionMakingUnit):
         super().__init__()
         self.update_unit_name()
 
-    def get_param_str(self) -> str:
-        """返回参数信息字符串"""
-        return "default"
-
     def _get_period(self, current_time: datetime.datetime) -> str:
         """
         根据时间戳获取当前所属的时间段。
@@ -49,7 +46,7 @@ class TimePeriodDMU(DecisionMakingUnit):
             current_time: datetime 类型的时间戳
             
         返回:
-            时间段标识 (A-G)，如果不在任何时间段内返回 None
+            时间段标识 (A-G)，如果不在任何时间段内返回 Z
         """
         time_only = current_time.time()
         
@@ -57,7 +54,7 @@ class TimePeriodDMU(DecisionMakingUnit):
             if start_time <= time_only < end_time:
                 return period
         
-        return None
+        return "Z"
 
     def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         """
@@ -70,12 +67,7 @@ class TimePeriodDMU(DecisionMakingUnit):
         返回:
             包含当前时间段标识的字典，例如: {"period": "A"}
         """
-        # 支持对象或字典两种访问方式
-        if hasattr(new_data, 'name'):
-            current_time = new_data.name
-        else:
-            current_time = new_data.get('name')
-        
+        current_time = new_data.name
         period = self._get_period(current_time)
         
         return {"period": period}
@@ -103,8 +95,8 @@ if __name__ == "__main__":
         datetime.datetime(2026, 1, 5, 14, 45),  # G
         datetime.datetime(2026, 1, 5, 15, 0),   # G
         datetime.datetime(2026, 1, 5, 15, 14),  # G
-        datetime.datetime(2026, 1, 5, 15, 15),  # None (收盘后)
-        datetime.datetime(2026, 1, 5, 8, 59),   # None (开盘前)
+        datetime.datetime(2026, 1, 5, 15, 15),  # Z (收盘后)
+        datetime.datetime(2026, 1, 5, 8, 59),   # Z (开盘前)
     ]
     
     for ts in test_times:
