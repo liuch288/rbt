@@ -91,7 +91,7 @@ class PnlEstimateUnit(Unit):
         Returns:
             dict: 损益评估结果，包含以下字段：
                 - pnl (float): 预估收益，正值表示盈利，负值表示亏损
-                - finish_time (int/str): 交易完成时间戳，通常为最后一笔成交发生的时间
+                - finish_time (int/str): 交易完成时间戳，通常为最后一笔成交发生的时间（建议返回，非必须）
                 - 其他字段: 由子类定义
 
         Raises:
