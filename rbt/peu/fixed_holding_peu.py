@@ -151,3 +151,17 @@ class FixedHoldingPEU(PnlEstimateUnit):
             'max_up_vol': max_up_vol,
             'max_down_vol': max_down_vol,
         }
+
+    def get_param_str(self) -> str:
+        """
+        获取参数字符串描述
+
+        Returns:
+            str: 参数字符串，如 "10t" 或 "60s"
+        """
+        if self.watching_mds is not None:
+            return f"{self.watching_mds}t"
+        elif self.watching_time is not None:
+            return f"{self.watching_time}s"
+        else:
+            raise ValueError("watching_time and watching_mds are not set")
