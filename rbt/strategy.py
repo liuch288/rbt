@@ -5,6 +5,7 @@ from .md import MdEngine
 from .dmu import DecisionMakingUnit, PositionPnlDMU
 from .peu import PnlEstimateUnit
 from .result_db import ResultDB
+from .util import get_instrument_info
 
 
 class Strategy(object):
@@ -14,19 +15,42 @@ class Strategy(object):
         self.peus = []
         self.recalculate_peu_names = []
         self.position_pnl_dmu_class = position_pnl_dmu_class
+        self.contract_info = None
+
+    def set_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
+        """提前设置合约信息，后续注册的 unit 会自动获取"""
+        self.contract_info = {
+            "symbol": symbol,
+            "tick_size": tick_size,
+            "hands": hands,
+            "digits": digits,
+        }
 
     def register_dmu(self, dmu: DecisionMakingUnit, recalculate: bool = False):
         if recalculate:
             self.recalculate_dmu_names.append(dmu.name)
         self.dmus.append(dmu)
+        if self.contract_info:
+            dmu.register_contract_info(**self.contract_info)
 
     def register_peu(self, peu: PnlEstimateUnit, recalculate: bool = False):
         if recalculate:
             self.recalculate_peu_names.append(peu.name)
         self.peus.append(peu)
+        if self.contract_info:
+            peu.register_contract_info(**self.contract_info)
 
     def register_md_engine(self, md_engine: MdEngine):
         self.md_engine = md_engine
+        if self.contract_info is None and md_engine.cur_sym:
+            info = get_instrument_info(md_engine.cur_sym)
+            if info:
+                self.set_contract_info(
+                    symbol=md_engine.cur_sym,
+                    tick_size=info.get("tick_size"),
+                    hands=info.get("hands"),
+                    digits=info.get("digits"),
+                )
 
     def register_result_db(self, result_db: ResultDB):
         self.result_db = result_db
