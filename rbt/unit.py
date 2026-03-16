@@ -2,6 +2,7 @@ class Unit(object):
     def __init__(self) -> None:
         self.name = f"{self.__class__.__name__}_{self.__class__.version}"
         self.name_updated = False
+        self.contract_info = None
 
     def update_unit_name(self) -> str:
         """根据参数更新unit name，由各个unit主动调用"""
@@ -20,3 +21,19 @@ class Unit(object):
             str: 载明参数的字符串
         """
         return ""
+
+    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
+        """注册合约信息
+
+        Args:
+            symbol: 合约代码
+            tick_size: 最小变动价位
+            hands: 合约乘数
+            digits: 价格精度
+        """
+        self.contract_info = {
+            "symbol": symbol,
+            "tick_size": tick_size,
+            "hands": hands,
+            "digits": digits,
+        }
