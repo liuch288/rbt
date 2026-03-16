@@ -78,14 +78,6 @@ class FixedHoldingPEU(PnlEstimateUnit):
                 - short_return (float): 做空收益百分比（对手价开仓，对手价平仓）
                 - max_up_vol (float): 向上最大波幅百分比
                 - max_down_vol (float): 向下最大波幅百分比
-                - first_mid_px (float): 第一个数据点的中间价
-                - last_mid_px (float): 最后一个数据点的中间价
-                - first_ask (float): 第一个ask价
-                - first_bid (float): 第一个bid价
-                - last_ask (float): 最后一个ask价
-                - last_bid (float): 最后一个bid价
-                - period_high (float): 周期内最高价（ask_px1 最大值）
-                - period_low (float): 周期内最低价（bid_px1 最小值）
         
         Raises:
             ValueError: 当数据为空或缺少必要列时抛出
@@ -158,12 +150,4 @@ class FixedHoldingPEU(PnlEstimateUnit):
             'short_return': short_return,
             'max_up_vol': max_up_vol,
             'max_down_vol': max_down_vol,
-            'first_mid_px': first_mid_px,
-            'last_mid_px': last_mid_px,
-            'first_ask': first_ask,
-            'first_bid': first_bid,
-            'last_ask': last_ask,
-            'last_bid': last_bid,
-            'period_high': period_high,
-            'period_low': period_low,
         }
