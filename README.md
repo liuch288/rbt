@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**Version:** 0.7
+**Version:** 0.8
 
 A lightweight, modular backtesting framework for rule-based quantitative trading strategies.
 
