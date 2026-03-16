@@ -6,8 +6,8 @@
 
 计算指标：
 1. pnl: 最后中间价相比第一个中间价的变化（百分比）
-2. long_return: 做多收益 = (最后中间价 - 第一中间价) / 第一中间价
-3. short_return: 做空收益 = (第一中间价 - 最后中间价) / 第一中间价
+2. long_return: 做多收益 = (最后bid - 第一个ask) / 第一个ask（对手价开仓，对手价平仓）
+3. short_return: 做空收益 = (第一个bid - 最后ask) / 第一个bid（对手价开仓，对手价平仓）
 4. max_up_vol: 向上最大波幅 = (周期内最高价 - 第一中间价) / 第一中间价
 5. max_down_vol: 向下最大波幅 = (第一中间价 - 周期内最低价) / 第一中间价
 
@@ -61,8 +61,8 @@ class FixedHoldingPEU(PnlEstimateUnit):
         
         计算以下指标：
         - pnl: 最后中间价相比第一个中间价的变化百分比
-        - long_return: 做多收益（百分比）
-        - short_return: 做空收益（百分比）
+        - long_return: 做多收益（百分比）= (最后bid - 第一个ask) / 第一个ask
+        - short_return: 做空收益（百分比）= (第一个bid - 最后ask) / 第一个bid
         - max_up_vol: 向上最大波幅（百分比）
         - max_down_vol: 向下最大波幅（百分比）
         
@@ -74,14 +74,10 @@ class FixedHoldingPEU(PnlEstimateUnit):
         Returns:
             dict: 包含以下字段的评估结果：
                 - pnl (float): 最后中间价相比第一中间价的变化百分比
-                - long_return (float): 做多收益百分比
-                - short_return (float): 做空收益百分比
+                - long_return (float): 做多收益百分比（对手价开仓，对手价平仓）
+                - short_return (float): 做空收益百分比（对手价开仓，对手价平仓）
                 - max_up_vol (float): 向上最大波幅百分比
                 - max_down_vol (float): 向下最大波幅百分比
-                - first_mid_px (float): 第一个数据点的中间价
-                - last_mid_px (float): 最后一个数据点的中间价
-                - period_high (float): 周期内最高价（ask_px1 最大值）
-                - period_low (float): 周期内最低价（bid_px1 最小值）
         
         Raises:
             ValueError: 当数据为空或缺少必要列时抛出
@@ -112,8 +108,10 @@ class FixedHoldingPEU(PnlEstimateUnit):
         last_data = data.iloc[-1]
         
         # 提取价格
-        first_mid_px = first_data['mid_px']  # 第一中间价
-        last_mid_px = last_data['mid_px']    # 最后中间价
+        first_ask = first_data['ask_px1']  # 第一个ask（开多仓价 / 平空仓价）
+        first_bid = first_data['bid_px1']  # 第一个bid（开空仓价 / 平多仓价）
+        last_ask = last_data['ask_px1']    # 最后一个ask（平空仓价）
+        last_bid = last_data['bid_px1']    # 最后一个bid（平多仓价）
         
         # 周期内最高价（使用 ask_px1 的最大值）
         period_high = data['ask_px1'].max()
@@ -121,18 +119,24 @@ class FixedHoldingPEU(PnlEstimateUnit):
         # 周期内最低价（使用 bid_px1 的最小值）
         period_low = data['bid_px1'].min()
         
+        # 第一中间价（用于波幅计算）
+        first_mid_px = (first_ask + first_bid) / 2
+        last_mid_px = (last_ask + last_bid) / 2
+        
         # 避免除零错误
-        if first_mid_px == 0:
-            raise ValueError("第一中间价为0，无法计算百分比收益")
+        if first_ask == 0:
+            raise ValueError("第一个ask价为0，无法计算做多收益")
+        if first_bid == 0:
+            raise ValueError("第一个bid价为0，无法计算做空收益")
         
         # 1. pnl：最后中间价相比第一个中间价的变化（百分比）
         pnl = (last_mid_px - first_mid_px) / first_mid_px
         
-        # 2. 做多收益：(最后中间价 - 第一中间价) / 第一中间价
-        long_return = (last_mid_px - first_mid_px) / first_mid_px
+        # 2. 做多收益：(最后bid - 第一个ask) / 第一个ask（对手价开仓，对手价平仓）
+        long_return = (last_bid - first_ask) / first_ask
         
-        # 3. 做空收益：(第一中间价 - 最后中间价) / 第一中间价
-        short_return = (first_mid_px - last_mid_px) / first_mid_px
+        # 3. 做空收益：(第一个bid - 最后ask) / 第一个bid（对手价开仓，对手价平仓）
+        short_return = (first_bid - last_ask) / first_bid
         
         # 4. 向上最大波幅：(周期内最高价 - 第一中间价) / 第一中间价
         max_up_vol = (period_high - first_mid_px) / first_mid_px
@@ -146,8 +150,4 @@ class FixedHoldingPEU(PnlEstimateUnit):
             'short_return': short_return,
             'max_up_vol': max_up_vol,
             'max_down_vol': max_down_vol,
-            'first_mid_px': first_mid_px,
-            'last_mid_px': last_mid_px,
-            'period_high': period_high,
-            'period_low': period_low,
         }
