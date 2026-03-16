@@ -70,7 +70,7 @@ class PnlEstimateUnit(Unit):
         self.watching_time = watching_time
         self.watching_mds = watching_mds
 
-    def estimate(self, data, previous_result: dict = None) -> dict:
+    def estimate(self, data, previous_result: dict = {}) -> dict:
         """
         评估交易规则在给定行情数据上的损益
 

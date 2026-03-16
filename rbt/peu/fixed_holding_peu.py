@@ -55,7 +55,7 @@ class FixedHoldingPEU(PnlEstimateUnit):
         """
         super().__init__(watching_time=watching_time, watching_mds=watching_mds)
 
-    def estimate(self, data, previous_result: dict = None) -> dict:
+    def estimate(self, data, previous_result: dict = {}) -> dict:
         """
         评估固定持有期限的收益
         
