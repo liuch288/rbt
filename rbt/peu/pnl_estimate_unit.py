@@ -57,15 +57,20 @@ class PnlEstimateUnit(Unit):
 
         Raises:
             ValueError: 当同时指定 watching_time 和 watching_mds 时抛出。
+            ValueError: 当 watching_time 和 watching_mds 都未指定时抛出。
 
         Note:
-            - 如果两者都未指定，则使用全部数据进行评估
+            - watching_time 和 watching_mds 必须指定其中一个
             - 建议使用 watching_time，因为不同数据的行情频率可能不同
         """
         super().__init__()
         if watching_time is not None and watching_mds is not None:
             raise ValueError(
                 "Do not input watching_time and watching_mds simultaneously"
+            )
+        if watching_time is None and watching_mds is None:
+            raise ValueError(
+                "watching_time and watching_mds cannot both be None"
             )
         self.watching_time = watching_time
         self.watching_mds = watching_mds
