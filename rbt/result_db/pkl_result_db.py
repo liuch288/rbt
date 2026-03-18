@@ -68,10 +68,12 @@ class PklResultDB(ResultDB):
             if factors is not None:
                 if isinstance(factors, str):
                     factors = [factors]
-                # 只返回请求的因子列
-                existing_factors = [f for f in factors if f in data.columns]
-                if existing_factors:
-                    return data[existing_factors]
+                # 使用前缀匹配：只要列名以输入的 factor 开头就保留
+                matching_columns = [
+                    col for col in data.columns if any(col.startswith(f) for f in factors)
+                ]
+                if matching_columns:
+                    return data[matching_columns]
                 return None
             return data
         return None
