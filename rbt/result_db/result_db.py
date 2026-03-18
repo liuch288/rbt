@@ -7,7 +7,7 @@ from typing import List, Optional, Union
 import pandas as pd
 
 
-class BaseResultDB(metaclass=abc.ABCMeta):
+class ResultDB(abc.ABC):
     """
     由于PEU的运算通常极为缓慢，因此需要缓存前期计算好的数据用于后续研究。
     ResultDB负责管理已有结果，所有数据以"sym_date.pkl"的形式存放。

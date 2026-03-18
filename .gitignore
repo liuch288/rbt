@@ -6,6 +6,5 @@ tmp_test
 my_rbt
 *.pkl
 test.ipynb
-pkl_*
 test_db
 test_data
