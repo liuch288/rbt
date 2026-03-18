@@ -1,13 +1,18 @@
+"""Pickle 实现的 ResultDB"""
+
 import datetime
 import os
+from typing import List, Optional, Union
 
 import pandas as pd
 
+from .result_db import ResultDB
 
-class ResultDB(object):
+
+class PklResultDB(ResultDB):
     """
     由于PEU的运算通常极为缓慢，因此需要缓存前期计算好的数据用于后续研究。
-    ResultDB负责管理已有结果，所有数据以“sym_date.pkl”的形式存放，datetime.da
+    ResultDB负责管理已有结果，所有数据以"sym_date.pkl"的形式存放，datetime.da
     """
 
     def __init__(self, db_directory):
@@ -40,13 +45,43 @@ class ResultDB(object):
             new_data.to_pickle(path, compression="gzip")
         return None
 
-    def get_data(self, sym: str, date: datetime.date) -> list:
+    def get_data(
+        self,
+        sym: str,
+        date: datetime.date,
+        factors: Optional[Union[List[str], str]] = None,
+    ) -> Optional[pd.DataFrame]:
+        """
+        获取指定股票和日期的数据
+
+        Args:
+            sym: 股票代码
+            date: 日期
+            factors: 可选的因子列表或单个因子名，用于筛选返回的列
+
+        Returns:
+            包含数据的 DataFrame，如果不存在的返回 None
+        """
         path = self._get_path(sym, date)
         if os.path.exists(path):
             data = pd.read_pickle(path, compression="gzip")
+            if factors is not None:
+                if isinstance(factors, str):
+                    factors = [factors]
+                # 使用前缀匹配：只要列名以输入的 factor 开头就保留
+                matching_columns = [
+                    col for col in data.columns if any(col.startswith(f) for f in factors)
+                ]
+                if matching_columns:
+                    return data[matching_columns]
+                return None
             return data
         return None
 
-    def _get_path(self, sym: str, date: datetime.date) -> pd.DataFrame:
+    def _get_path(self, sym: str, date: datetime.date) -> str:
         path = os.path.join(self.db_directory, f"{sym}_{str(date)}.pkl")
         return path
+
+
+# 向后兼容别名
+ResultDB = PklResultDB

@@ -1,127 +1,131 @@
 # RBT (Rule-Based Trading)
 
-**Version:** 0.8
+**版本：** 0.8
 
-A lightweight, modular backtesting framework for rule-based quantitative trading strategies.
+RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
-## Overview
+## 简介
 
-RBT provides a flexible architecture for developing, testing, and evaluating rule-based trading strategies. It separates concerns into specialized units (DMU, PEU, IC) that can be composed freely.
+RBT 提供灵活的架构，用于开发、测试和评估规则型交易策略。框架将功能分离为专门的单元（DMU、PEU、IC），可以自由组合使用。
 
-## Architecture
+## 架构
 
 ```
 Strategy
-├── MdEngine      → Market Data Provider
-├── DMU(s)        → Decision Making Units (generate signals)
-├── PEU(s)        → PnL Estimation Units (evaluate outcomes)
-└── ResultDB      → Results Storage
+├── MdEngine      → 市场数据引擎
+├── DMU(s)        → 决策单元（生成信号）
+├── PEU(s)        → 盈亏估算单元（评估结果）
+└── ResultDB      → 结果数据库
 ```
 
-### Core Components
+### 核心组件
 
-| Component | Purpose |
-|-----------|---------|
-| **Strategy** | Main orchestration engine |
-| **DMU** (DecisionMakingUnit) | Analyzes market data → generates trading signals |
-| **PEU** (PnlEstimateUnit) | Estimates potential PnL for given signals |
-| **MD** (MarketData Engine) | Feeds historical/streaming market data |
-| **IC** (IndexCalculator) | Computes technical indicators |
-| **ResultDB** | Stores and manages backtest results |
+| 组件 | 说明 |
+|------|------|
+| **Strategy** | 主策略引擎，负责 orchestrate 各单元 |
+| **DMU** (DecisionMakingUnit) | 分析市场数据 → 生成交易信号 |
+| **PEU** (PnlEstimateUnit) | 根据信号估算潜在盈亏 |
+| **MD** (MarketData Engine) | 提供历史/实时市场数据 |
+| **IC** (IndexCalculator) | 计算技术指标 |
+| **ResultDB** | 存储和管理回测结果 |
 
-### Module Structure
+## 模块结构
 
 ```
 rbt/
 ├── rbt/
-│   ├── strategy.py      # Main Strategy class
-│   ├── unit.py          # Base Unit class
-│   ├── result_db.py     # Result database interface
-│   ├── dmu/             # Decision Making Units
-│   ├── peu/             # PnL Estimation Units
-│   ├── ic/              # Index Calculators
-│   ├── md/              # Market Data Engines
-│   └── util/            # Utilities
-├── test_rbt/            # Tests
-└── setup.py             # Package configuration
+│   ├── strategy.py           # 主策略类
+│   ├── unit.py               # 基础单元类
+│   ├── realtime_strategy.py  # 实时策略类
+│   ├── result_db/            # 结果数据库（v0.8 新结构）
+│   │   ├── __init__.py
+│   │   ├── result_db.py      # ResultDB 抽象基类
+│   │   └── pkl_result_db.py  # PklResultDB 实现
+│   ├── dmu/                  # 决策单元
+│   ├── peu/                  # 盈亏估算单元
+│   ├── ic/                   # 指标计算器
+│   ├── md/                   # 市场数据引擎
+│   └── util/                 # 工具函数
+├── test_rbt/                 # 测试用例
+└── setup.py                  # 包配置
 ```
 
-### DMU Modules
+## DMU 决策单元
 
-| Module | Description |
-|--------|-------------|
-| `trend_dmu` | Trend-following signals |
-| `mo_intention_dmu` | Market order intention detection |
-| `spread_dmu` | Spread-based signals |
-| `md_dmu` | Market data driven decisions |
-| `pass_through_dmu` | Pass through raw tick data to ResultDB |
+| 模块 | 说明 |
+|------|------|
+| `trend_dmu` | 趋势跟踪信号 |
+| `mo_intention_dmu` | 市单意图检测 |
+| `spread_dmu` | 价差信号 |
+| `md_dmu` | 市场数据驱动决策 |
+| `pass_through_dmu` | 透传原始tick数据到ResultDB |
 
-### PEU Modules
+## PEU 盈亏估算单元
 
-| Module | Description |
-|--------|-------------|
-| `biquote_peu` | Bid-ask spread PnL estimation |
-| `biquote_close_peu` | Close price PnL estimation |
-| `biquote_stop_close_peu` | Stop-loss PnL estimation |
-| `bts_simple_peu` | Simple backtest PnL |
+| 模块 | 说明 |
+|------|------|
+| `biquote_peu` | 买卖价差盈亏估算 |
+| `biquote_close_peu` | 收盘价盈亏估算 |
+| `biquote_stop_close_peu` | 止损盈亏估算 |
+| `bts_simple_peu` | 简单回测盈亏 |
 
-### IC Modules
+## IC 指标计算器
 
-| Module | Description |
-|--------|-------------|
-| `mean_ic` | Moving average |
-| `variance_ic` | Variance/volatility |
-| `rolling_kline_ic` | Rolling candlestick data |
-| `sum_ic` | Cumulative sum |
-| `smooth_ic` | Price smoothing |
-| `first_hit_ic` | First touch detection |
-| `mos_recover_ic` | MOS recovery calculation |
+| 模块 | 说明 |
+|------|------|
+| `mean_ic` | 移动平均 |
+| `variance_ic` | 方差/波动率 |
+| `rolling_kline_ic` | 滚动K线数据 |
+| `sum_ic` | 累计求和 |
+| `smooth_ic` | 价格平滑 |
+| `first_hit_ic` | 首次触及检测 |
+| `mos_recover_ic` | MOS恢复计算 |
 
-## Usage
+## 使用示例
 
-### Backtest Mode
+### 回测模式
 
 ```python
 from rbt import Strategy
 from rbt.md import MdEngine
 from rbt.dmu import TrendDMU
 from rbt.peu import BiquotePEU
-from rbt.result_db import ResultDB
+from rbt.result_db import PklResultDB
 
-# Initialize
+# 初始化
 strategy = Strategy()
 strategy.register_md_engine(MdEngine(...))
 strategy.register_dmu(TrendDMU())
 strategy.register_peu(BiquotePEU())
-strategy.register_result_db(ResultDB(...))
+strategy.register_result_db(PklResultDB(...))
 
-# Run backtest
+# 运行回测
 strategy.run(show_progress=True)
 ```
 
-### Realtime Mode
+### 实时模式
 
 ```python
 from rbt import RealtimeStrategy
 from rbt.dmu import TrendDMU
 
-# Initialize
+# 初始化
 strategy = RealtimeStrategy()
 strategy.register_dmu(TrendDMU())
 
-# Process single tick
+# 处理单条tick
 new_md = pd.Series({"price": 100, "volume": 1000})
 result = strategy.run_once(new_md)
 ```
 
-## Advanced Usage
+## 高级用法
 
-### BGM (Backtest Global Parameters)
+### BGM（Backtest Global Parameters）
 
-The `run()` method supports an optional `bgm` parameter for passing daily fixed parameters to all factor calculators:
+`run()` 方法支持可选的 `bgm` 参数，用于向所有因子计算器传递每日固定参数：
 
 ```python
-# Run with bgm parameters
+# 使用 bgm 参数运行
 bgm = {
     "date": "2026-03-05",
     "factor_a": 1.0,
@@ -131,25 +135,60 @@ bgm = {
 strategy.run(bgm=bgm)
 ```
 
-**Features:**
-- `bgm` is a `dict` that defaults to `{}` (empty dict)
-- BGM parameters are merged into `unit_results` on each iteration
-- Both DMU and PEU can access BGM fields via `unit_results`
-- Fully backward compatible (omit `bgm` for default behavior)
+**特性：**
+- `bgm` 是 `dict`，默认为 `{}`（空字典）
+- BGM 参数会在每次迭代时合并到 `unit_results` 中
+- DMU 和 PEU 都可通过 `unit_results` 访问 BGM 字段
+- 完全向后兼容（省略 `bgm` 则使用默认行为）
 
-**Use cases:**
-- Pass daily factors or parameters to all calculators
-- Inject experiment variables for A/B testing
-- Set date-specific constants accessible throughout the backtest
+**使用场景：**
+- 向所有计算器传递每日因子或参数
+- 注入实验变量用于 A/B 测试
+- 设置日期特定常量，在整个回测过程中可访问
+
+### ResultDB 用法（v0.8）
+
+```python
+from rbt.result_db import PklResultDB
+
+# 初始化
+db = PklResultDB("/path/to/db_directory")
+
+# 保存数据
+db.save_data("AAPL", datetime.date(2026, 3, 18), df)
+
+# 读取全部数据
+data = db.get_data("AAPL", datetime.date(2026, 3, 18))
+
+# 读取指定因子（支持前缀匹配）
+# 例如 factors=["price_", "volume_"] 会匹配所有以这些前缀开头的列
+data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"])
 ```
 
-## Dependencies
+**v0.8 更新说明：**
+- `ResultDB` 已重构为抽象基类（ABC）
+- `PklResultDB` 是基于 pickle 的默认实现
+- `get_data()` 新增 `factors` 参数，支持前缀匹配
+- 向后兼容：导入方式保持不变
+
+## 依赖
 
 - Python 3.x
 - pandas
 - progressbar2
 
-## License
+## 更新日志
+
+### v0.8 (2026-03-18)
+- **ResultDB 重构**: 提取抽象基类，支持多种存储后端
+  - 新增 `rbt/result_db/` 文件夹结构
+  - `ResultDB` 改为抽象基类 (`ABC`)
+  - `PklResultDB` 作为 pickle 实现
+  - 向后兼容: `from rbt.result_db import ResultDB` 保持不变
+- **ResultDB.get_data() 新增 factors 参数**: 支持前缀匹配读取指定因子
+- **类型注解修复**: `_get_path` 返回类型从 `pd.DataFrame` 改为 `str`
+- **.gitignore**: 移除 `pkl_*` 规则
+
+## 许可证
 
 MIT
-
