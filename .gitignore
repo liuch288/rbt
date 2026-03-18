@@ -8,3 +8,4 @@ my_rbt
 test.ipynb
 test_db
 test_data
+*.ipynb

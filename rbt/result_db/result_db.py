@@ -34,7 +34,7 @@ class ResultDB(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_existed_columns(self, sym: str, date: datetime.date) -> List[str]:
+    def get_existing_factors(self, sym: str, date: datetime.date) -> List[str]:
         """
         获取指定股票和日期已存在的列
 
