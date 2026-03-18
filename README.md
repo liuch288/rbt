@@ -149,6 +149,18 @@ strategy.run(bgm=bgm)
 - pandas
 - progressbar2
 
+## Changelog
+
+### v0.8 (2026-03-18)
+- **ResultDB 重构**: 提取抽象基类，支持多种存储后端
+  - 新增 `rbt/result_db/` 文件夹结构
+  - `ResultDB` 改为抽象基类 (`ABC`)
+  - `PklResultDB` 作为 pickle 实现
+  - 向后兼容: `from rbt.result_db import ResultDB` 保持不变
+- **ResultDB.get_data() 新增 factors 参数**: 支持前缀匹配读取指定因子
+- **类型注解修复**: `_get_path` 返回类型从 `pd.DataFrame` 改为 `str`
+- **.gitignore**: 移除 `pkl_*` 规则
+
 ## License
 
 MIT

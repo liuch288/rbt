@@ -78,7 +78,7 @@ class PklResultDB(ResultDB):
             return data
         return None
 
-    def _get_path(self, sym: str, date: datetime.date) -> pd.DataFrame:
+    def _get_path(self, sym: str, date: datetime.date) -> str:
         path = os.path.join(self.db_directory, f"{sym}_{str(date)}.pkl")
         return path
 
