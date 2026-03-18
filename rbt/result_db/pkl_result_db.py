@@ -21,7 +21,7 @@ class PklResultDB(ResultDB):
         else:
             raise FileNotFoundError(f"{db_directory} not found.")
 
-    def get_existed_columns(self, sym: str, date: datetime.date) -> list:
+    def get_existing_factors(self, sym: str, date: datetime.date) -> list:
         path = self._get_path(sym, date)
         if os.path.exists(path):
             data = pd.read_pickle(path, compression="gzip")

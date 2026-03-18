@@ -16,7 +16,7 @@ class FsResultDB(ResultDB):
     使用 Parquet 文件存储因子数据，支持多频率因子管理。
     """
 
-    def __init__(self, root_path: str, frequency: str = "tick"):
+    def __init__(self, root_path: str = None, frequency: str = "tick"):
         """
         初始化 FsResultDB。
 
@@ -31,7 +31,7 @@ class FsResultDB(ResultDB):
         """将 datetime.date 转换为字符串格式 YYYY-MM-DD"""
         return date.strftime("%Y-%m-%d")
 
-    def get_existed_columns(self, sym: str, date: datetime.date) -> List[str]:
+    def get_existing_factors(self, sym: str, date: datetime.date) -> List[str]:
         """
         获取指定股票和日期已存在的列（因子名列表）。
 
@@ -50,29 +50,36 @@ class FsResultDB(ResultDB):
         )
 
     def save_data(
-        self, sym: str, date: datetime.date, new_data: pd.DataFrame
+        self, sym: str, date: datetime.date, new_data: pd.DataFrame,
+        skip_existing: bool = False,
     ) -> None:
         """
         保存数据到数据库。
 
-        输入 DataFrame 列名格式：{factor_name}__{indicator}（如 MdDMU__mid）
+        输入 DataFrame 的 index 应为时间戳，列名格式：{factor_name}__{indicator}
+        - ts 不能作为普通列，只能在 index 中
         - 解析因子名：取 __ 前缀部分
-        - 用 list_factors 检查已存在因子，有冲突则 ValueError 报错
-        - 每个因子提取子集（ts + 该因子列），调用 store.save_factor 保存
-        - 列名转换：移除前缀 {factor_name}__，保留 indicator 部分
+        - 用 list_factors 检查已存在因子
+        - FactorStore 自动处理 index 转换，列名原样保存
 
         Args:
             sym: 股票代码
             date: 日期
             new_data: 要保存的 DataFrame
+            skip_existing: 若为 True，已存在的因子跳过并打印提示；
+                           若为 False（默认），遇到重复则抛出 ValueError
         """
         trade_date = self._get_trade_date(date)
+
+        # ts 不应作为普通列存在，应在 index 中
+        if "ts" in new_data.columns:
+            raise ValueError(
+                "'ts' 不应作为列存在，应作为 DataFrame 的 index。"
+            )
 
         # 解析列名，提取因子名
         factor_names = set()
         for col in new_data.columns:
-            if col == "ts":
-                continue
             if "__" not in col:
                 raise ValueError(
                     f"列名 '{col}' 不符合格式要求，应为 {{factor_name}}__{{indicator}}"
@@ -92,35 +99,20 @@ class FsResultDB(ResultDB):
         # 检查冲突
         conflicts = factor_names & existing_factors
         if conflicts:
-            raise ValueError(
-                f"因子 {conflicts} 已存在，无法覆盖。如需更新，请先删除再保存。"
-            )
+            if not skip_existing:
+                raise ValueError(
+                    f"因子 {conflicts} 已存在，无法覆盖。如需更新，请先删除再保存。"
+                )
+            print(f"跳过已存在的因子: {conflicts}")
 
-        # 保存每个因子
+        # 保存每个因子（FactorStore 会自动处理 index -> ts）
         for factor_name in factor_names:
-            # 提取该因子相关的列
-            factor_df = new_data[[col for col in new_data.columns if col.startswith(f"{factor_name}__")]].copy()
+            if factor_name in existing_factors:
+                continue
 
-            # 如果 ts 在索引中，重置为列
-            if factor_df.index.name == 'ts' or isinstance(factor_df.index, pd.DatetimeIndex):
-                factor_df = factor_df.reset_index()
-                # 如果第一列是 ts（DatetimeIndex），确保列名为 'ts'
-                if factor_df.columns[0] in ['index', 'ts'] or isinstance(factor_df.iloc[:, 0].dtype, pd.Timestamp):
-                    factor_df.columns = ['ts'] + list(factor_df.columns[1:])
-            elif 'ts' in new_data.columns:
-                # ts 是单独的列，合并进来
-                factor_df = pd.concat([new_data[['ts']], factor_df], axis=1)
+            factor_cols = [col for col in new_data.columns if col.startswith(f"{factor_name}__")]
+            factor_df = new_data[factor_cols]
 
-            # 列名转换：移除前缀 {factor_name}__，保留 indicator 部分
-            # 例如：MdDMU__mid -> mid, MdDMU__bid -> bid
-            rename_dict = {
-                col: col.split('__')[1] 
-                for col in factor_df.columns 
-                if col != 'ts' and '__' in col
-            }
-            factor_df = factor_df.rename(columns=rename_dict)
-
-            # 保存到 FactorStore
             self.store.save_factor(
                 contract=sym,
                 trade_date=trade_date,
@@ -178,22 +170,6 @@ class FsResultDB(ResultDB):
                 factor_names=factors_to_load,
                 frequency=self.frequency,
             )
-
-            # FactorStore 的 load_factors 会自动为列添加 {factor_name}_ 前缀
-            # 例如：mid -> MdDMU_mid
-            # 我们需要将其转换为 {factor_name}__{indicator} 格式
-            # 例如：MdDMU_mid -> MdDMU__mid
-            
-            rename_dict = {}
-            for factor_name in factors_to_load:
-                prefix = f"{factor_name}_"
-                for col in data.columns:
-                    if col != 'ts' and col.startswith(prefix):
-                        new_col = col.replace(prefix, f"{factor_name}__", 1)
-                        rename_dict[col] = new_col
-            
-            if rename_dict:
-                data = data.rename(columns=rename_dict)
 
             return data
         except FileNotFoundError:
