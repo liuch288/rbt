@@ -25,7 +25,6 @@ class KlineDMU(DecisionMakingUnit):
         self.kline_close = None  # K线收盘价
         self.kline_volume = None  # K线成交量
         self.kline_oi_diff = None  # K线持仓量变动
-        self.update_unit_name()  # 更新单元名称
 
     def get_param_str(self):
         """

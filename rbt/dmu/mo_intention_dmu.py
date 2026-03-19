@@ -29,7 +29,6 @@ class MoIntentionDMU(DecisionMakingUnit):
         self.sell_vol_ic = SumIC(watch_mds)
         self.ratio_threshold = ratio_threshold
         self.minimum_vol = minimum_vol
-        self.update_unit_name()
 
     def get_param_str(self):
         return f"{self.watch_mds}_{self.ratio_threshold}_{self.minimum_vol}"

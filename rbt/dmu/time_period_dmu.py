@@ -36,7 +36,6 @@ class TimePeriodDMU(DecisionMakingUnit):
         初始化TimePeriodDMU。
         """
         super().__init__()
-        self.update_unit_name()
 
     def _get_period(self, current_time: datetime.datetime) -> str:
         """

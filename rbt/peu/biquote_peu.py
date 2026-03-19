@@ -65,7 +65,6 @@ class BiquotePEU(PnlEstimateUnit):
         self.order_maintaining_time = order_maintaining_time
         self.tick_size = tick_size
         self.digits = len(str(tick_size).split(".")[1])
-        self.update_unit_name()
 
     def get_param_str(self):
         return f"{self.order_maintaining_time}_{self.active_closing_time}_{self.lb}_{self.la}"

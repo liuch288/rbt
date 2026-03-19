@@ -36,7 +36,6 @@ class BtsSimplePEU(PnlEstimateUnit):
         self.stop_loss = stop_loss
 
         self.digits = len(str(tick_size).split(".")[1])
-        self.update_unit_name()
 
     def get_param_str(self):
         return (
