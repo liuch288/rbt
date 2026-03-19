@@ -1,4 +1,23 @@
 class Unit(object):
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        original_init = cls.__dict__.get("__init__")
+        if original_init is not None:
+            import functools
+
+            @functools.wraps(original_init)
+            def wrapped_init(self, *args, **kw):
+                is_outermost = not hasattr(self, "_unit_initializing")
+                if is_outermost:
+                    self._unit_initializing = True
+                original_init(self, *args, **kw)
+                if is_outermost:
+                    del self._unit_initializing
+                    if not self.name_updated:
+                        self.update_unit_name()
+
+            cls.__init__ = wrapped_init
+
     def __init__(self) -> None:
         self.name = f"{self.__class__.__name__}_{self.__class__.version}"
         self.name_updated = False

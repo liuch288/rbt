@@ -32,7 +32,6 @@ class SimpleBiquotePEU(PnlEstimateUnit):
         self.tick_size = tick_size
 
         self.digits = len(str(tick_size).split(".")[1])
-        self.update_unit_name()
 
     def get_param_str(self):
         return f"{self.bid_price_key}_{self.ask_price_key}_{self.watching_time}"

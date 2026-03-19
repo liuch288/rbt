@@ -8,7 +8,6 @@ class OlsTrendDMU(DecisionMakingUnit):
         self.window_size = window_size
         self.order = order
         self.ols_trend_ic = OlsTrendIC(window_size, order)
-        self.update_unit_name()
 
     def get_param_str(self):
         return f"{self.order}_{self.window_size}"

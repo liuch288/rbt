@@ -21,7 +21,6 @@ class PassThroughDMU(DecisionMakingUnit):
         super().__init__()
         # 默认保存的原始字段
         self.fields = fields
-        self.update_unit_name()
 
     def get_param_str(self) -> str:
         if self.fields:
