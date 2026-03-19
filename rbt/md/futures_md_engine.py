@@ -6,12 +6,19 @@ import pandas as pd
 
 from rbt.md import MdEngine
 from futures_db import FuturesDB
+from futures_db.config import CompressionType, DEFAULT_COMPRESSION, DEFAULT_DATA_PATH
 
 
 class FuturesMdEngine(MdEngine):
-    def __init__(self, futures_db: FuturesDB, recover_mo: bool = True) -> None:
+    def __init__(self, base_path: str = DEFAULT_DATA_PATH, compression: CompressionType = DEFAULT_COMPRESSION, recover_mo: bool = True) -> None:
+        """
+        Args:
+            base_path: FuturesDB 数据存储根目录，默认从环境变量 FUTURESDB_PATH 读取
+            compression: 压缩类型，支持 'gzip', 'bz2', 'zip', 'xz', 'zstd'，默认 'gzip'
+            recover_mo: 是否恢复市价单
+        """
         super().__init__()
-        self.futures_db = futures_db
+        self.futures_db = FuturesDB(base_path=base_path, compression=compression)
         self.recover_mo = recover_mo
 
     def prepare_data(self, sym: str, date: datetime.date):
