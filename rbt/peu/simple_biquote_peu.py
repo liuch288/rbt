@@ -11,28 +11,28 @@ class SimpleBiquotePEU(PnlEstimateUnit):
 
     version = "v1"
 
-    # TODO: 需要合约参数 tick_size
     def __init__(
         self,
         bid_price_key: str,
         ask_price_key: str,
         watching_time: float,
-        tick_size: float = 0.001,
     ):
         """
         Args:
             bid_price_key (str): previous_result中保存买单价格的字段的key
             ask_price_key (str): previous_result中保存卖单价格的字段的key
             watching_time (float): 观察时间
-            tick_size (float): 最小报价单位
         """
         super().__init__(watching_time)
         self.bid_price_key = bid_price_key
         self.ask_price_key = ask_price_key
         self.watching_time = watching_time
-        self.tick_size = tick_size
+        self.tick_size = None
+        self.digits = None
 
-        self.digits = len(str(tick_size).split(".")[1])
+    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
+        self.tick_size = tick_size
+        self.digits = digits
 
     def get_param_str(self):
         return f"{self.bid_price_key}_{self.ask_price_key}_{self.watching_time}"

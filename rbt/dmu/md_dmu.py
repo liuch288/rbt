@@ -17,8 +17,6 @@ class MdDMU(DecisionMakingUnit):
         self.hands = hands
 
     def make_decision(self, new_data, *args, **kwargs) -> dict:
-        if self.hands is None:
-            raise RuntimeError("MdDMU: 请先通过 register_contract_info 注册合约信息")
         bid_px1 = new_data["bid_px1"]
         bid_sz1 = new_data["bid_sz1"]
         ask_px1 = new_data["ask_px1"]

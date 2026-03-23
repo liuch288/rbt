@@ -29,7 +29,7 @@ class BiquoteClosePEU(PnlEstimateUnit):
 
     def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
         self.tick_size = tick_size
-        self.digits = digits if digits is not None else len(str(tick_size).split(".")[1])
+        self.digits = digits
 
     def get_param_str(self):
         return f"{self.total_watching_time}_{self.start_closing_time}_{self.active_closing_time}_{self.lb}_{self.la}"
