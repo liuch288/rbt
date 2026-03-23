@@ -11,6 +11,7 @@ class SimpleBiquotePEU(PnlEstimateUnit):
 
     version = "v1"
 
+    # TODO: 需要合约参数 tick_size
     def __init__(
         self,
         bid_price_key: str,

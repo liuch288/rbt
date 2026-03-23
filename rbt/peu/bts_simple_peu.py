@@ -12,6 +12,7 @@ class BtsSimplePEU(PnlEstimateUnit):
 
     version = "v1"
 
+    # TODO: 需要合约参数 tick_size、hands
     def __init__(
         self,
         watching_time,

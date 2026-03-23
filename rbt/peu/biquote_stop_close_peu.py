@@ -5,6 +5,7 @@ from .biquote_peu import Order
 class BiquoteStopClosePEU(PnlEstimateUnit):
     version = "v0"
 
+    # TODO: 需要合约参数 tick_size
     def __init__(
         self,
         total_watching_time: float = None,

@@ -6,6 +6,7 @@ from ..util import get_instrument_info
 class MdDMU(DecisionMakingUnit):
     version = "v0"
 
+    # TODO: 需要合约参数 sym，通过 get_instrument_info 获取 hands
     def __init__(self, sym: str):
         super().__init__()
         info = get_instrument_info(sym)

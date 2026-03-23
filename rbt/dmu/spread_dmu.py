@@ -4,6 +4,7 @@ from .decision_making_unit import DecisionMakingUnit
 class SpreadDMU(DecisionMakingUnit):
     version = "v0"
 
+    # TODO: 需要合约参数 tick_size
     def __init__(self, tick_size: float = 0.005):
         super().__init__()
         self.tick_size = tick_size

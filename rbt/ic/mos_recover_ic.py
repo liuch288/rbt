@@ -295,6 +295,7 @@ def recover_mo_core_lv1(
 
 
 class MosRecoverIC(IndexCalculator):
+    # TODO: 需要合约参数 tick_size、hands，或通过 sym 自动查询
     def __init__(
         self,
         tick_size: float = 0.005,
