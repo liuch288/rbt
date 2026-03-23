@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.8
+**版本：** 0.10
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -178,6 +178,11 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.10 (2026-03-20)
+- **Unit 自动命名**: `Unit` 基类通过 `__init_subclass__` 自动调用 `update_unit_name()`，子类无需手动调用
+- **FuturesMdEngine 简化构造**: 直接接受 `base_path` 和 `compression` 参数，无需外部创建 `FuturesDB` 实例
+- **__init__ 导出补全**: `rbt.dmu` 补充导出 `KlineDMU`、`MidPositionPnlDMU`；`rbt.md` 补充导出 `FuturesMdEngine`
 
 ### v0.8 (2026-03-18)
 - **ResultDB 重构**: 提取抽象基类，支持多种存储后端
