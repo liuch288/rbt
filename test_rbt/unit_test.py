@@ -415,6 +415,7 @@ class TestPositionGenDMU(unittest.TestCase):
 
 class TestStrategyBgm(unittest.TestCase):
     def test_bgm_merge_to_unit_results(self):
+        import tempfile
         # 创建测试数据
         test_data = pd.DataFrame({
             'bid_px1': [100, 101, 102],
@@ -422,24 +423,26 @@ class TestStrategyBgm(unittest.TestCase):
         }, index=pd.date_range('2024-01-01 09:30:00', periods=3, freq='1min'))
         
         # 初始化组件
-        md_engine = MdEngine(test_data, 'TEST', '20240101')
-        result_db = ResultDB(':memory:')
-        strategy = Strategy()
-        strategy.register_md_engine(md_engine)
-        strategy.register_result_db(result_db)
-        
-        # 定义bgm
-        bgm = {'bgm_field1': 123, 'bgm_field2': 'test_value'}
-        
-        # 运行策略
-        strategy.run(bgm=bgm)
-        
-        # 验证bgm字段已合并到unit_results
-        for timestamp, results in strategy.unit_results.items():
-            self.assertIn('bgm_field1', results)
-            self.assertIn('bgm_field2', results)
-            self.assertEqual(results['bgm_field1'], 123)
-            self.assertEqual(results['bgm_field2'], 'test_value')
+        md_engine = MdEngine()
+        md_engine._register_raw_md('TEST', '20240101', test_data, recover_mo=False)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result_db = ResultDB(tmpdir)
+            strategy = Strategy()
+            strategy.register_md_engine(md_engine)
+            strategy.register_result_db(result_db)
+            
+            # 定义bgm
+            bgm = {'bgm_field1': 123, 'bgm_field2': 'test_value'}
+            
+            # 运行策略
+            strategy.run(bgm=bgm)
+            
+            # 验证bgm字段已合并到unit_results
+            for timestamp, results in strategy.unit_results.items():
+                self.assertIn('bgm_field1', results)
+                self.assertIn('bgm_field2', results)
+                self.assertEqual(results['bgm_field1'], 123)
+                self.assertEqual(results['bgm_field2'], 'test_value')
 
 
 if __name__ == "__main__":

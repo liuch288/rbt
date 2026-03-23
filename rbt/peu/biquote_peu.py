@@ -52,7 +52,6 @@ class BiquotePEU(PnlEstimateUnit):
         active_closing_time: float = 3,
         lb: int = 1,
         la: int = 1,
-        tick_size: float = 0.005,
     ):
         """
         lb、la是以一档为基准的价格，取1时是指在一档挂单，0时则为比一档更优一个报价单位的价格下单，其他是在一档的基础上加减lx-1个报价单位
@@ -63,8 +62,12 @@ class BiquotePEU(PnlEstimateUnit):
         self.la = la
         self.active_closing_time = active_closing_time
         self.order_maintaining_time = order_maintaining_time
+        self.tick_size = None
+        self.digits = None
+
+    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
         self.tick_size = tick_size
-        self.digits = len(str(tick_size).split(".")[1])
+        self.digits = digits
 
     def get_param_str(self):
         return f"{self.order_maintaining_time}_{self.active_closing_time}_{self.lb}_{self.la}"

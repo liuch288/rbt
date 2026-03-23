@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.10
+**版本：** 0.11
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -178,6 +178,12 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.11 (2026-03-24)
+- **合约参数统一注入**: DMU/PEU/IC 不再在构造函数中接收 `sym`、`tick_size`、`hands` 等合约参数，改为通过 `register_contract_info()` 统一注入
+  - 影响: `MdDMU`、`SpreadDMU`、`MosRecoverIC`、`BiquotePEU`、`BiquoteClosePEU`、`BiquoteStopClosePEU`、`SimpleBiquotePEU`、`BtsSimplePEU`
+  - `Unit` 基类的 `register_contract_info()` 默认为空操作，需要合约信息的子类自行 override
+  - `Strategy.set_contract_info()` 会在注册 unit 时自动下发合约信息
 
 ### v0.10 (2026-03-20)
 - **Unit 自动命名**: `Unit` 基类通过 `__init_subclass__` 自动调用 `update_unit_name()`，子类无需手动调用

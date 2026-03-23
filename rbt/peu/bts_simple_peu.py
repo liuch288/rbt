@@ -17,25 +17,26 @@ class BtsSimplePEU(PnlEstimateUnit):
         watching_time,
         buy_shift: int,
         sell_shift: int,
-        hands: int = 100,
         stop_loss: int = 10,
-        tick_size: float = 0.001,
     ):
         """
         Args:
             n (int): 买单相对于买一价的调整单位数
             m (int): 卖单相对于买一价的调整单位数
-            tick_size (float): 最小报价单位
         """
         super().__init__(watching_time)
         self.watching_time = watching_time
         self.buy_shift = buy_shift
         self.sell_shift = sell_shift
+        self.tick_size = None
+        self.hands = None
+        self.stop_loss = stop_loss
+        self.digits = None
+
+    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
         self.tick_size = tick_size
         self.hands = hands
-        self.stop_loss = stop_loss
-
-        self.digits = len(str(tick_size).split(".")[1])
+        self.digits = digits
 
     def get_param_str(self):
         return (
