@@ -1,22 +1,24 @@
 from .decision_making_unit import DecisionMakingUnit
 from ..ic import SmoothIC, VarianceIC, MeanIC
-from ..util import get_instrument_info
 
 
 class MdDMU(DecisionMakingUnit):
     version = "v0"
 
-    # TODO: 需要合约参数 sym，通过 get_instrument_info 获取 hands
-    def __init__(self, sym: str):
+    def __init__(self):
         super().__init__()
-        info = get_instrument_info(sym)
-        self.hands = info["hands"]
+        self.hands = None
         self.bid_filter = SmoothIC()
         self.ask_filter = SmoothIC()
         self.variance_ic = VarianceIC(120)
         self.mean_ic = MeanIC(120)
 
+    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
+        self.hands = hands
+
     def make_decision(self, new_data, *args, **kwargs) -> dict:
+        if self.hands is None:
+            raise RuntimeError("MdDMU: 请先通过 register_contract_info 注册合约信息")
         bid_px1 = new_data["bid_px1"]
         bid_sz1 = new_data["bid_sz1"]
         ask_px1 = new_data["ask_px1"]

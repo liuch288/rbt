@@ -5,7 +5,6 @@ from .biquote_peu import Order
 class BiquoteClosePEU(PnlEstimateUnit):
     version = "v0"
 
-    # TODO: 需要合约参数 tick_size
     def __init__(
         self,
         total_watching_time: float = None,
@@ -13,7 +12,6 @@ class BiquoteClosePEU(PnlEstimateUnit):
         active_closing_time: float = 3,
         lb: int = 1,
         la: int = 1,
-        tick_size: float = 0.005,
     ):
         """
         lb、la是以一档为基准的价格，取1时是指在一档挂单，0时则为比一档更优一个报价单位的价格下单，其他是在一档的基础上加减lx-1个报价单位
@@ -26,8 +24,12 @@ class BiquoteClosePEU(PnlEstimateUnit):
         self.active_closing_time = active_closing_time
         self.lb = lb
         self.la = la
+        self.tick_size = None
+        self.digits = None
+
+    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
         self.tick_size = tick_size
-        self.digits = len(str(tick_size).split(".")[1])
+        self.digits = digits if digits is not None else len(str(tick_size).split(".")[1])
 
     def get_param_str(self):
         return f"{self.total_watching_time}_{self.start_closing_time}_{self.active_closing_time}_{self.lb}_{self.la}"
