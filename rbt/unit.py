@@ -45,7 +45,7 @@ class Unit(object):
         """返回本 unit 依赖的其他因子名称列表
 
         Returns:
-            list[str]: 依赖的因子名称，如 ["MdDMU_v0", "SmoothIC"]
+            list[str]: 依赖的因子名称，如 ["MdDMU_v0", "KlineDMU_v0_5min"]
         """
         return []
 
@@ -64,11 +64,4 @@ class Unit(object):
             "hands": hands,
             "digits": digits,
         }
-    def dependencies(self) -> list:
-        """返回本 unit 依赖的其他因子名称列表
-
-        Returns:
-            list[str]: 依赖的因子名称，如 ["MdDMU_v0", "SmoothIC"]
-        """
-        return []
 
