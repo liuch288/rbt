@@ -41,6 +41,14 @@ class Unit(object):
         """
         return ""
 
+    def dependencies(self) -> list:
+        """返回本 unit 依赖的其他因子名称列表
+
+        Returns:
+            list[str]: 依赖的因子名称，如 ["MdDMU_v0", "SmoothIC"]
+        """
+        return []
+
     def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
         """注册合约信息
 
@@ -56,3 +64,11 @@ class Unit(object):
             "hands": hands,
             "digits": digits,
         }
+    def dependencies(self) -> list:
+        """返回本 unit 依赖的其他因子名称列表
+
+        Returns:
+            list[str]: 依赖的因子名称，如 ["MdDMU_v0", "SmoothIC"]
+        """
+        return []
+
