@@ -49,7 +49,8 @@ class ResultDB(abc.ABC):
 
     @abc.abstractmethod
     def save_data(
-        self, sym: str, date: datetime.date, new_data: pd.DataFrame
+        self, sym: str, date: datetime.date, new_data: pd.DataFrame,
+        skip_existing: bool = False,
     ) -> None:
         """
         保存数据到数据库
@@ -58,5 +59,6 @@ class ResultDB(abc.ABC):
             sym: 股票代码
             date: 日期
             new_data: 要保存的 DataFrame
+            skip_existing: 若为 True，已存在的因子跳过；若为 False（默认），遇到重复则抛出 ValueError
         """
         pass
