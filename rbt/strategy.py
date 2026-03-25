@@ -60,6 +60,7 @@ class Strategy(object):
         cur_sym = self.md_engine.cur_sym
         cur_date = self.md_engine.cur_date
         existed_data = self.result_db.get_data(cur_sym, cur_date)
+        # TODO: 指定读取哪些因子，避免加载冗余数据
         if existed_data is None:
             existed_data = pd.DataFrame()
         existed_cols = existed_data.columns

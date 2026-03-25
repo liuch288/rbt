@@ -16,16 +16,20 @@ class FsResultDB(ResultDB):
     使用 Parquet 文件存储因子数据，支持多频率因子管理。
     """
 
-    def __init__(self, root_path: str = None, frequency: str = "tick"):
+    def __init__(self, root_path: str = None, frequency: str = "tick",
+                 skip_existing: bool = False):
         """
         初始化 FsResultDB。
 
         Args:
             root_path: FactorStore 根目录路径
             frequency: 数据频率，默认 "tick"
+            skip_existing: 若为 True，已存在的因子跳过并打印提示；
+                           若为 False（默认），遇到重复则抛出 ValueError
         """
         self.store = FactorStore(root_path=root_path)
         self.frequency = frequency
+        self.skip_existing = skip_existing
 
     def _get_trade_date(self, date: datetime.date) -> str:
         """将 datetime.date 转换为字符串格式 YYYY-MM-DD"""
@@ -51,7 +55,6 @@ class FsResultDB(ResultDB):
 
     def save_data(
         self, sym: str, date: datetime.date, new_data: pd.DataFrame,
-        skip_existing: bool = False,
     ) -> None:
         """
         保存数据到数据库。
@@ -66,10 +69,9 @@ class FsResultDB(ResultDB):
             sym: 股票代码
             date: 日期
             new_data: 要保存的 DataFrame
-            skip_existing: 若为 True，已存在的因子跳过并打印提示；
-                           若为 False（默认），遇到重复则抛出 ValueError
         """
         trade_date = self._get_trade_date(date)
+        skip_existing = self.skip_existing
 
         # ts 不应作为普通列存在，应在 index 中
         if "ts" in new_data.columns:
