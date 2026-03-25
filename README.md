@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.12
+**版本：** 0.13
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -178,6 +178,13 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.13 (2026-03-25)
+- **FsResultDB LSP 修复**: `skip_existing` 参数从 `save_data` 方法签名移至构造函数，符合 Liskov 替换原则
+- **ResultDB 基类更新**: `save_data` 方法签名增加 `skip_existing: bool = False` 参数
+- **strategy.py 重构**: `existed_data` 改名为 `loaded_data`；`existed_cols` 改名为 `existed_factors`；改用 `get_existing_factors()` 获取已有因子列表
+- **strategy.py save_data**: 调用时设置 `skip_existing=True`，避免重复因子冲突
+- **strategy.py TODO**: run 函数获取 loaded data 处增加 TODO，提示需指定读取哪些因子
 
 ### v0.12 (2026-03-25)
 - **Unit 依赖声明**: `Unit` 基类新增 `dependencies()` 方法，返回 `list[str]`，用于声明本 unit 依赖哪些其他 unit 的结果
