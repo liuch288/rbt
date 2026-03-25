@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.13
+**版本：** 0.14
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -178,6 +178,9 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.14 (2026-03-25)
+- **Strategy.run() 优化**: 延迟数据加载时机，先确定 new_dmus 和 new_peus，再收集 `dependencies()` 去重后按需加载，避免冗余
 
 ### v0.13 (2026-03-25)
 - **FsResultDB LSP 修复**: `skip_existing` 参数从 `save_data` 方法签名移至构造函数，符合 Liskov 替换原则

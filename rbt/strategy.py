@@ -56,13 +56,9 @@ class Strategy(object):
         self.result_db = result_db
 
     def run(self, show_progress: bool = False, bgm: dict = None):
-        # STEP 1: 读入已有数据
+        # STEP 1: 获取已有因子列表（轻量级检查）
         cur_sym = self.md_engine.cur_sym
         cur_date = self.md_engine.cur_date
-        loaded_data = self.result_db.get_data(cur_sym, cur_date)
-        # TODO: 指定读取哪些因子，避免加载冗余数据
-        if loaded_data is None:
-            loaded_data = pd.DataFrame()
         existed_factors = self.result_db.get_existing_factors(cur_sym, cur_date)
 
         # STEP 2: 加入需要计算的DMU
@@ -84,7 +80,21 @@ class Strategy(object):
             elif peu.name in self.recalculate_peu_names:
                 new_peus.append(peu)
 
-        # STEP 4: 执行运算
+        # STEP 4: 查询各 unit 依赖的因子，去重后加载
+        required_factors = set()
+        for dmu in new_dmus:
+            required_factors.update(dmu.dependencies())
+        for peu in new_peus:
+            required_factors.update(peu.dependencies())
+
+        if required_factors:
+            loaded_data = self.result_db.get_data(cur_sym, cur_date, factors=list(required_factors))
+        else:
+            loaded_data = pd.DataFrame()
+        if loaded_data is None:
+            loaded_data = pd.DataFrame()
+
+        # STEP 5: 执行运算
         self.unit_results = {}
         if bgm is None:
             bgm = {}
@@ -129,6 +139,6 @@ class Strategy(object):
         if show_progress:
             bar.finish()
 
-        # STEP 5: 保存结果
+        # STEP 6: 保存结果
         new_data = pd.DataFrame.from_dict(self.unit_results, orient="index")
         self.result_db.save_data(cur_sym, cur_date, new_data, skip_existing=True)
