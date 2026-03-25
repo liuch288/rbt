@@ -59,17 +59,17 @@ class Strategy(object):
         # STEP 1: 读入已有数据
         cur_sym = self.md_engine.cur_sym
         cur_date = self.md_engine.cur_date
-        existed_data = self.result_db.get_data(cur_sym, cur_date)
+        loaded_data = self.result_db.get_data(cur_sym, cur_date)
         # TODO: 指定读取哪些因子，避免加载冗余数据
-        if existed_data is None:
-            existed_data = pd.DataFrame()
-        existed_cols = existed_data.columns
+        if loaded_data is None:
+            loaded_data = pd.DataFrame()
+        existed_factors = self.result_db.get_existing_factors(cur_sym, cur_date)
 
         # STEP 2: 加入需要计算的DMU
         # 用户DMU
         new_dmus = []
         for dmu in self.dmus:
-            if not any(col.startswith(dmu.name) for col in existed_cols):
+            if not any(col.startswith(dmu.name) for col in existed_factors):
                 new_dmus.append(dmu)
             elif dmu.name in self.recalculate_dmu_names:
                 new_dmus.append(dmu)
@@ -79,7 +79,7 @@ class Strategy(object):
         # STEP 3: 加入需要计算的PEU
         new_peus = []
         for peu in self.peus:
-            if not any(col.startswith(peu.name) for col in existed_cols):
+            if not any(col.startswith(peu.name) for col in existed_factors):
                 new_peus.append(peu)
             elif peu.name in self.recalculate_peu_names:
                 new_peus.append(peu)
@@ -100,8 +100,8 @@ class Strategy(object):
             cur_time = new_md.name
 
             unit_results = {}
-            if cur_time in existed_data.index:
-                unit_results = existed_data.loc[cur_time].to_dict()
+            if cur_time in loaded_data.index:
+                unit_results = loaded_data.loc[cur_time].to_dict()
             unit_results.update(bgm)
             for dmu in new_dmus:
                 dmu_name = dmu.name
@@ -131,4 +131,4 @@ class Strategy(object):
 
         # STEP 5: 保存结果
         new_data = pd.DataFrame.from_dict(self.unit_results, orient="index")
-        self.result_db.save_data(cur_sym, cur_date, new_data)
+        self.result_db.save_data(cur_sym, cur_date, new_data, skip_existing=True)
