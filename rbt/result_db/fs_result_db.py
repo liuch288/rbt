@@ -16,20 +16,16 @@ class FsResultDB(ResultDB):
     使用 Parquet 文件存储因子数据，支持多频率因子管理。
     """
 
-    def __init__(self, root_path: str = None, frequency: str = "tick",
-                 skip_existing: bool = False):
+    def __init__(self, root_path: str = None, frequency: str = "tick"):
         """
         初始化 FsResultDB。
 
         Args:
             root_path: FactorStore 根目录路径
             frequency: 数据频率，默认 "tick"
-            skip_existing: 若为 True，已存在的因子跳过并打印提示；
-                           若为 False（默认），遇到重复则抛出 ValueError
         """
         self.store = FactorStore(root_path=root_path)
         self.frequency = frequency
-        self.skip_existing = skip_existing
 
     def _get_trade_date(self, date: datetime.date) -> str:
         """将 datetime.date 转换为字符串格式 YYYY-MM-DD"""
@@ -55,7 +51,7 @@ class FsResultDB(ResultDB):
 
     def save_data(
         self, sym: str, date: datetime.date, new_data: pd.DataFrame,
-        skip_existing: bool = None,
+        skip_existing: bool = False,
     ) -> None:
         """
         保存数据到数据库。
@@ -71,12 +67,11 @@ class FsResultDB(ResultDB):
             date: 日期
             new_data: 要保存的 DataFrame
             skip_existing: 若为 True，已存在的因子跳过；
-                           若为 False，遇到重复则抛出 ValueError；
-                           若为 None（默认），使用实例默认值 self.skip_existing
+                           若为 False（默认），遇到重复则抛出 ValueError
         """
-        # 使用传入的值，若为 None 则使用实例默认值
+        # skip_existing 默认为 False
         if skip_existing is None:
-            skip_existing = self.skip_existing
+            skip_existing = False
         trade_date = self._get_trade_date(date)
 
         # ts 不应作为普通列存在，应在 index 中
