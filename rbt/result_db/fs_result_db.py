@@ -55,6 +55,7 @@ class FsResultDB(ResultDB):
 
     def save_data(
         self, sym: str, date: datetime.date, new_data: pd.DataFrame,
+        skip_existing: bool = None,
     ) -> None:
         """
         保存数据到数据库。
@@ -69,9 +70,14 @@ class FsResultDB(ResultDB):
             sym: 股票代码
             date: 日期
             new_data: 要保存的 DataFrame
+            skip_existing: 若为 True，已存在的因子跳过；
+                           若为 False，遇到重复则抛出 ValueError；
+                           若为 None（默认），使用实例默认值 self.skip_existing
         """
+        # 使用传入的值，若为 None 则使用实例默认值
+        if skip_existing is None:
+            skip_existing = self.skip_existing
         trade_date = self._get_trade_date(date)
-        skip_existing = self.skip_existing
 
         # ts 不应作为普通列存在，应在 index 中
         if "ts" in new_data.columns:
