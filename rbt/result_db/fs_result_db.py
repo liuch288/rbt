@@ -69,9 +69,6 @@ class FsResultDB(ResultDB):
             skip_existing: 若为 True，已存在的因子跳过；
                            若为 False（默认），遇到重复则抛出 ValueError
         """
-        # skip_existing 默认为 False
-        if skip_existing is None:
-            skip_existing = False
         trade_date = self._get_trade_date(date)
 
         # ts 不应作为普通列存在，应在 index 中
