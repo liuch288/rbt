@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.11
+**版本：** 0.12
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -178,6 +178,11 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.12 (2026-03-25)
+- **Unit 依赖声明**: `Unit` 基类新增 `dependencies()` 方法，返回 `list[str]`，用于声明本 unit 依赖哪些其他 unit 的结果
+  - 默认返回空列表，子类按需覆写
+  - `PositionPnlDMU`、`MidPositionPnlDMU` 已标注依赖 `PositionGenDMU_v0`
 
 ### v0.11 (2026-03-24)
 - **合约参数统一注入**: DMU/PEU/IC 不再在构造函数中接收 `sym`、`tick_size`、`hands` 等合约参数，改为通过 `register_contract_info()` 统一注入
