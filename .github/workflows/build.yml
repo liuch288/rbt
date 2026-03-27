@@ -56,6 +56,6 @@ jobs:
         with:
           files: dist/*.whl
           generate_release_notes: true
-          tag: v${{ env.VERSION }}
+          tag_name: v${{ env.VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
