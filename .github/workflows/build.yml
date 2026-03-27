@@ -25,9 +25,8 @@ jobs:
           
       - name: Build wheel
         run: python -m build
-        # 输出到 dist/ 目录
-        
-      - name: Upload artifacts
+
+      - name: Upload wheel as artifact
         uses: actions/upload-artifact@v4
         with:
           name: wheels
@@ -36,7 +35,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     
     steps:
       - name: Download artifacts
