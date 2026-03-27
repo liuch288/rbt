@@ -2,9 +2,9 @@ name: Build and Release
 
 on:
   push:
-    branches: [master]
+    branches: [${{ github.event.repository.default_branch }}]
   pull_request:
-    branches: [master]
+    branches: [${{ github.event.repository.default_branch }}]
 
 jobs:
   build:
@@ -35,7 +35,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/${{ github.event.repository.default_branch }}'
     
     steps:
       - name: Download artifacts
@@ -44,10 +44,14 @@ jobs:
           name: wheels
           path: dist
           
+      - name: Extract version
+        run: echo "VERSION=$(python -c "import re; print(re.search(r'version=\"([^\"]+)\"', open('setup.py').read()).group(1))")" >> $GITHUB_ENV
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: dist/*.whl
           generate_release_notes: true
+          tag: v${{ env.VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
