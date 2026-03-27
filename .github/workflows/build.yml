@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -49,13 +52,16 @@ jobs:
           path: dist
           
       - name: Extract version
-        run: echo "VERSION=$(python -c "import re; print(re.search(r'version=\"([^\"]+)\"', open('setup.py').read()).group(1))")" >> $GITHUB_ENV
+        run: |
+          VERSION=$(python -c "import re; print(re.search(r'version=\"([^\"]+)\"', open('./setup.py').read()).group(1))")
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.whl
-          generate_release_notes: true
+          # generate_release_notes: true  # Disabled - requires additional permissions
           tag_name: v${{ env.VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
