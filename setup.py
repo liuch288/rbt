@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="rbt",
-    version="0.14",
+    version="0.15",
     packages=find_packages(),
     description="RBT framework is a Python library for quantitative trading research, providing functionalities for market data processing, strategy execution, and performance evaluation.",
     author="Your Name",
