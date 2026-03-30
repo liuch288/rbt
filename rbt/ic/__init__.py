@@ -2,6 +2,7 @@ from .ema_ic import EmaIC
 from .first_hit_ic import FirstHitIC
 from .index_calculator import IndexCalculator
 from .mean_ic import MeanIC
+from .min_max_ic import MinMaxIC
 from .mos_recover_ic import MosRecoverIC
 from .ols_trend_ic import OlsTrendIC
 from .rolling_kline_ic import RollingKlineIC
