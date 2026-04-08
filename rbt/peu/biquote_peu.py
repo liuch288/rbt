@@ -49,7 +49,6 @@ class BiquotePEU(PnlEstimateUnit):
     def __init__(
         self,
         order_maintaining_time: float = None,
-        active_closing_time: float = 3,
         lb: int = 1,
         la: int = 1,
     ):
@@ -57,10 +56,9 @@ class BiquotePEU(PnlEstimateUnit):
         lb、la是以一档为基准的价格，取1时是指在一档挂单，0时则为比一档更优一个报价单位的价格下单，其他是在一档的基础上加减lx-1个报价单位
         仅支持输入固定时长，不支持输入行情戳个数
         """
-        super().__init__(order_maintaining_time + active_closing_time, None)
+        super().__init__(order_maintaining_time, None)
         self.lb = lb
         self.la = la
-        self.active_closing_time = active_closing_time
         self.order_maintaining_time = order_maintaining_time
         self.tick_size = None
         self.digits = None
@@ -70,7 +68,7 @@ class BiquotePEU(PnlEstimateUnit):
         self.digits = digits
 
     def get_param_str(self):
-        return f"{self.order_maintaining_time}_{self.active_closing_time}_{self.lb}_{self.la}"
+        return f"{self.order_maintaining_time}_{self.lb}_{self.la}"
 
     def estimate(self, future_data, previous_result=None, *args, **kwargs) -> dict:
         # 确定有多少订单排在前面
