@@ -37,7 +37,7 @@ class SimpleBiquotePEU(PnlEstimateUnit):
     def get_param_str(self):
         return f"{self.bid_price_key}_{self.ask_price_key}_{self.watching_time}"
 
-    def estimate(self, future_data, previous_result, *args, **kwargs) -> dict:
+    def estimate(self, future_data, previous_result=None, *args, **kwargs) -> dict:
         # 确定报单价格
         buy_px = previous_result[self.bid_price_key]
         sell_px = previous_result[self.ask_price_key]
