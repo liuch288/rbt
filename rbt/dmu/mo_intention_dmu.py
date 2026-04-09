@@ -4,33 +4,31 @@ from ..ic import SumIC
 
 class MoIntentionDMU(DecisionMakingUnit):
     """
-    市价单倾向性dmu
+    市价单倾向性DMU
+
+    统计滑动窗口内的主动买卖量，计算多空比。
+    依赖 MoSplitDMU 提供的 exec_before 数据（通过 previous_result 读取）。
+
+    输出:
+        ratio: 多空比 (all_buy - all_sell) / (all_buy + all_sell)，范围 [-1, 1]
+        all_buy: 窗口内累计主动买量
+        all_sell: 窗口内累计主动卖量
     """
 
     version = "v0"
 
-    def __init__(
-        self,
-        watch_mds,
-        ratio_threshold,
-        minimum_vol,
-    ):
-        """_summary_
-
+    def __init__(self, watch_mds):
+        """
         Args:
-            watch_mds (_type_): 观测多少个行情戳
-            ratio_threshold (_type_): 多空订单比的绝对值要大于的阈值
-            minimum_vol: 主要方向的订单至少要达到多少才算 (以防只有1手买被当成主动买入)
+            watch_mds: 滑动窗口大小（行情戳个数）
         """
         super().__init__()
         self.watch_mds = watch_mds
         self.buy_vol_ic = SumIC(watch_mds)
         self.sell_vol_ic = SumIC(watch_mds)
-        self.ratio_threshold = ratio_threshold
-        self.minimum_vol = minimum_vol
 
     def get_param_str(self):
-        return f"{self.watch_mds}_{self.ratio_threshold}_{self.minimum_vol}"
+        return f"{self.watch_mds}"
 
     def dependencies(self) -> list:
         return ["MoSplitDMU"]
@@ -47,15 +45,9 @@ class MoIntentionDMU(DecisionMakingUnit):
         all_buy = self.buy_vol_ic.update(cur_buy)
         all_sell = self.sell_vol_ic.update(cur_sell)
 
-        hits = 0
         ratio = 0.0
         all_trades = all_buy + all_sell
         if all_trades > 0:
             ratio = (all_buy - all_sell) / all_trades
-        if all_trades > self.minimum_vol:
-            if ratio > self.ratio_threshold:
-                hits = 1
-            elif ratio < -self.ratio_threshold:
-                hits = -1
 
-        return {"hits": hits, "ratio": ratio, "all_buy": all_buy, "all_sell": all_sell}
+        return {"ratio": ratio, "all_buy": all_buy, "all_sell": all_sell}
