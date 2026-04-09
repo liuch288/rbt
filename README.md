@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.16
+**版本：** 0.17
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -55,7 +55,8 @@ rbt/
 | 模块 | 说明 |
 |------|------|
 | `trend_dmu` | 趋势跟踪信号 |
-| `mo_intention_dmu` | 市单意图检测 |
+| `mo_intention_dmu` | 市价单倾向性分析 |
+| `mo_split_dmu` | 市价单拆分（封装MosRecoverIC） |
 | `spread_dmu` | 价差信号 |
 | `md_dmu` | 市场数据驱动决策 |
 | `pass_through_dmu` | 透传原始tick数据到ResultDB |
@@ -178,6 +179,22 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.17 (2026-04-09)
+- **MoSplitDMU**: 新增市价单拆分 DMU，将市价单恢复逻辑从 MdEngine 中剥离为独立 DMU
+  - 封装 `MosRecoverIC`，支持 lv1/lv2 模式，通过 `register_contract_info` 延迟初始化
+  - 仅提供 `exec_before`，不再生成 `exec_after`
+- **MdEngine 精简**: 移除 `_register_raw_md` 的 `recover_mo` 参数和 `__recover_mo` 方法，行情引擎不再负责市价单拆分
+- **FuturesMdEngine 精简**: 移除 `recover_mo` 构造参数和 `prepare_data` 中的市价单恢复逻辑
+- **MoIntentionDMU 重构**: 从 `previous_result` 读取 `MoSplitDMU` 的输出；移除 `ratio_threshold`、`minimum_vol`、`hits`，仅输出 `ratio`、`all_buy`、`all_sell`；新增 `dependencies()` 声明对 `MoSplitDMU` 的依赖
+
+### v0.16 (2026-04-09)
+- **BiquotePEU 优化**: 移除 `active_closing_time` 参数，简化 `watching_time` 计算逻辑
+- **PEU estimate 签名统一**: 所有 PEU 的 `estimate()` 方法统一增加 `previous_result=None` 默认参数
+- **PEU 文档整理**: 移除旧版分析文档，更新 `rbt/peu/README.md`
+
+### v0.15 (2026-04-09)
+- **MinMaxIC**: 新增最小值/最大值追踪 IC，持续记录输入序列的全局最小值和最大值，支持 `reset()` 重置
 
 ### v0.14 (2026-03-25)
 - **Strategy.run() 优化**: 延迟数据加载时机，先确定 new_dmus 和 new_peus，再收集 `dependencies()` 去重后按需加载，避免冗余
