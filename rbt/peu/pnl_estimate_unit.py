@@ -75,40 +75,27 @@ class PnlEstimateUnit(Unit):
         self.watching_time = watching_time
         self.watching_mds = watching_mds
 
-    def estimate(self, data, previous_result: dict = {}) -> dict:
+    def estimate(self, future_md, future_unit_results=None) -> dict:
         """
         评估交易规则在给定行情数据上的损益
 
         这是 PEU 的核心方法，子类需要实现具体的评估逻辑。
-        方法接收行情数据，模拟订单执行过程，返回预估的损益结果。
+        方法接收未来行情数据和对应时间范围的 DMU 结果，模拟订单执行过程，返回预估的损益结果。
 
         Args:
-            data: pandas.DataFrame，包含行情数据。
-                  具体列结构由子类定义，通常包含价格、成交量等信息。
-            previous_result: dict，可选的上一轮评估结果。
-                             用于 PEU 链式调用，参考 SimpleBiquotePEU 等实现。
+            future_md: pandas.DataFrame，未来一段时间的行情数据，第一行为当前可见行情。
+                       具体列结构由子类定义，通常包含价格、成交量等信息。
+            future_unit_results: pandas.DataFrame，可选。index 为时间戳，columns 为因子名。
+                                 时间窗口与 future_md 一致，包含 dependencies 声明的 unit 计算结果。
+                                 如果 PEU 不依赖任何 unit 输出，可以为 None。
 
         Returns:
             dict: 损益评估结果，包含以下字段：
                 - pnl (float): 预估收益，正值表示盈利，负值表示亏损
-                - finish_time (int/str): 交易完成时间戳，通常为最后一笔成交发生的时间（建议返回，非必须）
+                - finish_time (int/str): 交易完成时间戳（建议返回，非必须）
                 - 其他字段: 由子类定义
 
         Raises:
             NotImplementedError: 子类未实现此方法时抛出
-
-        Note:
-            - 子类必须实现此方法
-            - 如果使用市价单拆分模拟撮合，需要考虑订单簿深度
-            - 建议在无法成交时返回空结果或负无穷收益
-
-        Example:
-            >>> # 简单示例：买入后卖出
-            >>> def estimate(self, data, previous_result=None):
-            ...     buy_price = data['ask1'].iloc[0]
-            ...     sell_price = data['bid1'].iloc[-1]
-            ...     pnl = (sell_price - buy_price) * hands
-            ...     finish_time = data.index[-1]
-            ...     return {"pnl": pnl, "finish_time": finish_time}
         """
         raise NotImplementedError("Subclass must implement estimate() method")

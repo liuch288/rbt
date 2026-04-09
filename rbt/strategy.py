@@ -94,6 +94,19 @@ class Strategy(object):
         if loaded_data is None:
             loaded_data = pd.DataFrame()
 
+        # STEP 4.5: 检查所有 unit 的依赖是否已在 loaded_data 中
+        for unit in list(new_dmus) + list(new_peus):
+            missing = [
+                f for f in unit.dependencies()
+                if not any(col.startswith(f) for col in loaded_data.columns)
+            ]
+            if missing:
+                raise RuntimeError(
+                    f"Unit '{unit.name}' depends on {missing}, "
+                    f"but they are not found in ResultDB. "
+                    f"Please run the corresponding units first and save results."
+                )
+
         # STEP 5: 执行运算
         self.unit_results = {}
         if bgm is None:
@@ -124,7 +137,13 @@ class Strategy(object):
                 future_md = self.md_engine.get_future_md(
                     peu.watching_time, peu.watching_mds
                 )
-                result = peu.estimate(future_md, unit_results)
+                # 构建 future_unit_results：从 loaded_data 中取与 future_md 同时间范围的数据
+                future_unit_results = None
+                if peu.dependencies():
+                    future_unit_results = loaded_data.loc[
+                        loaded_data.index.isin(future_md.index)
+                    ]
+                result = peu.estimate(future_md, future_unit_results)
                 for key in result.keys():
                     unit_results[f"{peu_name}__{key}"] = result[key]
             self.unit_results[cur_time] = unit_results

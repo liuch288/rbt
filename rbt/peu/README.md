@@ -39,14 +39,38 @@ class PnlEstimateUnit(Unit):
         # watching_mds: 观察行情数据点个数
         pass
 
-    def estimate(self, data, previous_result: dict = {}) -> dict:
+    def estimate(self, future_md, future_unit_results=None) -> dict:
         """
         评估交易规则在给定行情数据上的损益
-        :param data: DataFrame，包含行情数据
+        :param future_md: DataFrame，未来一段时间的行情数据，第一行为当前可见行情
+        :param future_unit_results: DataFrame，与 future_md 同时间窗口的 unit 计算结果（来自 ResultDB）
         :return: 损益评估结果
         """
         pass
 ```
+
+### 2.3 estimate 入参说明
+
+**future_md**：由 `MdEngine.get_future_md()` 提供的未来行情 DataFrame。
+- `future_md.iloc[0]` 是当前可见行情（挂单时刻的盘口）
+- 后续行是未来行情，用于判断挂单是否成交
+
+**future_unit_results**：由 Strategy 从 ResultDB 中按 `future_md` 的时间范围切片得到的 DataFrame。
+- index 与 `future_md` 对齐
+- columns 为 PEU 通过 `dependencies()` 声明的因子
+- 如果 PEU 没有声明 dependencies，则为 `None`
+- 典型用途：获取 `MoSplitDMU` 输出的 `exec_before`，用于模拟市价单撮合
+
+**依赖机制**：
+- PEU 通过覆写 `dependencies()` 声明需要的因子（如 `["MoSplitDMU_v0_auto"]`）
+- Strategy 在运行前检查这些因子是否已存在于 ResultDB 中，不存在则 RuntimeError
+- 这意味着依赖的 DMU 必须先单独运行并保存结果，PEU 才能使用
+
+**与旧版的区别**：
+- 旧版 `estimate(data, previous_result)` 中 `previous_result` 是当前时刻的 unit_results dict
+- 新版 `estimate(future_md, future_unit_results)` 中 `future_unit_results` 是未来时间窗口的 DataFrame
+- 旧版 PEU 通过 `cur_md["exec_after"]` 从原始行情数据读取市价单拆分结果
+- 新版 PEU 应通过 `future_unit_results` 读取 DMU 输出的 `exec_before`
 
 ### 2.3 输出规范
 
