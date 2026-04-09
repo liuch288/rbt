@@ -14,14 +14,15 @@ class MoIntentionDMU(DecisionMakingUnit):
         watch_mds,
         ratio_threshold,
         minimum_vol,
+        mo_split_dmu_name: str = None,
     ):
         """_summary_
 
         Args:
             watch_mds (_type_): 观测多少个行情戳
             ratio_threshold (_type_): 多空订单比的绝对值要大于的阈值
-            volume_threshold: 买卖量至少要到多大才能算积极买卖
             minimum_vol: 主要方向的订单至少要达到多少才算 (以防只有1手买被当成主动买入)
+            mo_split_dmu_name: MoSplitDMU实例名称，为None时回退到从new_data["exec_before"]读取
         """
         super().__init__()
         self.watch_mds = watch_mds
@@ -29,12 +30,16 @@ class MoIntentionDMU(DecisionMakingUnit):
         self.sell_vol_ic = SumIC(watch_mds)
         self.ratio_threshold = ratio_threshold
         self.minimum_vol = minimum_vol
+        self.mo_split_dmu_name = mo_split_dmu_name
 
     def get_param_str(self):
         return f"{self.watch_mds}_{self.ratio_threshold}_{self.minimum_vol}"
 
     def make_decision(self, new_data, prev_result) -> dict:
-        cur_mos = new_data["exec_before"]
+        if self.mo_split_dmu_name:
+            cur_mos = prev_result.get(f"{self.mo_split_dmu_name}__exec_before", [])
+        else:
+            cur_mos = new_data.get("exec_before", [])
         cur_buy = 0
         cur_sell = 0
         for mo in cur_mos:
