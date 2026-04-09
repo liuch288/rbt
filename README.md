@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.18
+**版本：** 0.19
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -179,6 +179,14 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.19 (2026-04-10)
+- **PEU estimate 签名重构**: `estimate(data, previous_result)` 改为 `estimate(future_md, future_unit_results=None)`
+  - `future_unit_results` 为 DataFrame，时间窗口与 `future_md` 一致，包含 dependencies 声明的 unit 计算结果
+  - PEU 可通过 `future_unit_results` 访问未来时段的 DMU 输出（如 `exec_before`）
+- **Strategy 依赖检查**: 运行前统一检查所有 DMU/PEU 的 dependencies 是否已在 ResultDB 中，缺失则 RuntimeError 提前报错
+- **Strategy PEU 调用**: 有 dependencies 的 PEU 会收到从 loaded_data 切片的 future_unit_results DataFrame
+- **ResultDB.get_data()**: `factors=None` 时不再返回所有数据，改为返回 None（FsResultDB、PklResultDB 同步修改）
 
 ### v0.18 (2026-04-10)
 - **MoSplitDMU / MosRecoverIC 动态档位支持**: 新增 `recover_mo_core_dynamic` 和 `detect_levels`，自动探测行情数据的可用档位数（1~5档），动态构建 volume vector

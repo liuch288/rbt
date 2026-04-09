@@ -150,14 +150,14 @@ class FsResultDB(ResultDB):
         if not all_factors:
             return None
 
-        # 如果没有指定因子，返回所有
+        # 如果没有指定因子，不返回数据
         if factors is None:
-            factors_to_load = all_factors
-        else:
-            if isinstance(factors, str):
-                factors = [factors]
-            # 前缀匹配筛选（与 PklResultDB 一致）
-            factors_to_load = [f for f in all_factors if any(f.startswith(factor) for factor in factors)]
+            return None
+
+        if isinstance(factors, str):
+            factors = [factors]
+        # 前缀匹配筛选（与 PklResultDB 一致）
+        factors_to_load = [f for f in all_factors if any(f.startswith(factor) for factor in factors)]
 
         if not factors_to_load:
             return None
