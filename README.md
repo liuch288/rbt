@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.17
+**版本：** 0.18
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -179,6 +179,13 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.18 (2026-04-10)
+- **MoSplitDMU / MosRecoverIC 动态档位支持**: 新增 `recover_mo_core_dynamic` 和 `detect_levels`，自动探测行情数据的可用档位数（1~5档），动态构建 volume vector
+  - `md_type` 默认值从 `"lv2"` 改为 `"auto"`，自动适配不同档位的行情数据
+  - 保留 `"lv1"` 和 `"lv2"` 模式用于对比
+  - 价格边界仍使用二档（与 lv2 一致），仅 volume vector 利用所有可用档位
+- **MoSplitDMU**: 新增 `get_param_str()`，返回 `md_type`
 
 ### v0.17 (2026-04-09)
 - **MoSplitDMU**: 新增市价单拆分 DMU，将市价单恢复逻辑从 MdEngine 中剥离为独立 DMU

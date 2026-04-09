@@ -9,10 +9,13 @@ class MoSplitDMU(DecisionMakingUnit):
 
     version = "v0"
 
-    def __init__(self, md_type: str = "lv2"):
+    def __init__(self, md_type: str = "auto"):
         super().__init__()
         self.md_type = md_type
         self.recover_ic = None
+
+    def get_param_str(self):
+        return self.md_type
 
     def register_contract_info(self, symbol: str, tick_size=None, hands=None, digits=None):
         self.recover_ic = MosRecoverIC(sym=symbol, md_type=self.md_type)
