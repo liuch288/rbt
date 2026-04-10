@@ -70,7 +70,7 @@ class BiquotePEU(PnlEstimateUnit):
     def get_param_str(self):
         return f"{self.order_maintaining_time}_{self.lb}_{self.la}"
 
-    def estimate(self, future_data, previous_result=None, *args, **kwargs) -> dict:
+    def estimate(self, future_md, future_unit_results=None) -> dict:
         # 确定有多少订单排在前面
         init_md = future_data.iloc[0]
         start_time = init_md.name
