@@ -23,6 +23,7 @@ PnlEstimateUnit (pnl_estimate_unit.py)
     ↓
     ├── BtsSimplePEU
     ├── SimpleBiquotePEU
+    ├── FixedHoldingPEU
     ├── BiquotePEU
     ├── BiquoteClosePEU
     └── BiquoteStopClosePEU
@@ -39,11 +40,11 @@ class PnlEstimateUnit(Unit):
         # watching_mds: 观察行情数据点个数
         pass
 
-    def estimate(self, future_md, future_unit_results=None) -> dict:
+    def estimate(self, future_data) -> dict:
         """
         评估交易规则在给定行情数据上的损益
-        :param future_md: DataFrame，未来一段时间的行情数据，第一行为当前可见行情
-        :param future_unit_results: DataFrame，与 future_md 同时间窗口的 unit 计算结果（来自 ResultDB）
+        :param future_data: DataFrame，未来一段时间的数据（行情 + 依赖的 unit 结果），
+                            由 Strategy 通过 pd.concat 拼接后传入，第一行为当前可见行情
         :return: 损益评估结果
         """
         pass
@@ -51,26 +52,22 @@ class PnlEstimateUnit(Unit):
 
 ### 2.3 estimate 入参说明
 
-**future_md**：由 `MdEngine.get_future_md()` 提供的未来行情 DataFrame。
-- `future_md.iloc[0]` 是当前可见行情（挂单时刻的盘口）
+**future_data**：由 Strategy 拼接后传入的 DataFrame，包含行情数据和依赖的 unit 计算结果。
+- 行情部分由 `MdEngine.get_future_md()` 提供
+- unit 结果部分由 Strategy 从 ResultDB 中按相同时间范围切片后通过 `pd.concat(axis=1)` 拼接
+- `future_data.iloc[0]` 是当前可见行情（挂单时刻的盘口）
 - 后续行是未来行情，用于判断挂单是否成交
-
-**future_unit_results**：由 Strategy 从 ResultDB 中按 `future_md` 的时间范围切片得到的 DataFrame。
-- index 与 `future_md` 对齐
-- columns 为 PEU 通过 `dependencies()` 声明的因子
-- 如果 PEU 没有声明 dependencies，则为 `None`
-- 典型用途：获取 `MoSplitDMU` 输出的 `exec_before`，用于模拟市价单撮合
+- 如果 PEU 没有声明 dependencies，则只包含行情列
 
 **依赖机制**：
 - PEU 通过覆写 `dependencies()` 声明需要的因子（如 `["MoSplitDMU_v0_auto"]`）
 - Strategy 在运行前检查这些因子是否已存在于 ResultDB 中，不存在则 RuntimeError
-- 这意味着依赖的 DMU 必须先单独运行并保存结果，PEU 才能使用
+- 有 dependencies 时，Strategy 将 unit 结果列拼接到行情 DataFrame 中一起传入
+- 无 dependencies 时，不触发拼接，零额外开销
 
 **与旧版的区别**：
-- 旧版 `estimate(data, previous_result)` 中 `previous_result` 是当前时刻的 unit_results dict
-- 新版 `estimate(future_md, future_unit_results)` 中 `future_unit_results` 是未来时间窗口的 DataFrame
-- 旧版 PEU 通过 `cur_md["exec_after"]` 从原始行情数据读取市价单拆分结果
-- 新版 PEU 应通过 `future_unit_results` 读取 DMU 输出的 `exec_before`
+- v0.19: `estimate(future_md, future_unit_results)` 两个参数分别传入
+- v0.20: `estimate(future_data)` 单参数，Strategy 负责拼接，PEU 接口更简洁
 
 ### 2.3 输出规范
 
@@ -98,10 +95,10 @@ class PnlEstimateUnit(Unit):
 
 ### 3.2 SimpleBiquotePEU - 简单双边下单
 
-**功能**：双边同时下单，价格来自 `previous_result` 中的指定字段。
+**功能**：双边同时下单，价格来自 `future_data` 中的指定字段。
 
 **核心逻辑**：
-1. 从 `previous_result` 获取买卖价格
+1. 从 `future_data` 获取买卖价格
 2. 判定买单是否成交：卖一价 ≤ 买单价格
 3. 判定卖单是否成交：买一价 ≥ 卖单价格
 4. 如果最后一个行情戳仍有头寸，按对手价平仓
@@ -226,7 +223,7 @@ peu = SimpleBiquotePEU(
     watching_time=5.0,
 )
 
-result = peu.estimate(future_data, previous_result)
+result = peu.estimate(future_data)
 # result = {"pnl": 0.002, "buy_executed": True, ...}
 ```
 
@@ -253,6 +250,7 @@ result = peu.estimate(future_data)
 | PnlEstimateUnit | v0 | 基类 |
 | BtsSimplePEU | v1 | 简单买后卖 |
 | SimpleBiquotePEU | v1 | 简单双边 |
+| FixedHoldingPEU | v1 | 固定持有期限 |
 | BiquotePEU | v0 | 完整双边报价 |
 | BiquoteClosePEU | v0 | 带平仓 |
 | BiquoteStopClosePEU | v0 | 带止损 |
