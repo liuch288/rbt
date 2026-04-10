@@ -44,11 +44,11 @@ class BtsSimplePEU(PnlEstimateUnit):
         )
 
     def estimate(self, future_md, future_unit_results=None) -> dict:
-        future_data["mid_px"] = (future_data["bid_px1"] + future_data["ask_px1"]) / 2
-        future_data["exec_px"] = (
-            future_data["trade_notional"] / future_data["trade_sz"] / self.hands
+        future_md["mid_px"] = (future_md["bid_px1"] + future_md["ask_px1"]) / 2
+        future_md["exec_px"] = (
+            future_md["trade_notional"] / future_md["trade_sz"] / self.hands
         )
-        first_md = future_data.iloc[0]
+        first_md = future_md.iloc[0]
         start_time = first_md.name
         buy_px = first_md["bid_px1"] + self.buy_shift * self.tick_size
         buy_px = round(buy_px, self.digits)
@@ -57,14 +57,14 @@ class BtsSimplePEU(PnlEstimateUnit):
         stop_losing_triggered = False
 
         # 判定买单是否立即成交
-        first_md = future_data.iloc[0]
+        first_md = future_md.iloc[0]
         if buy_px >= first_md["ask_px1"]:
             buy_px = first_md["ask_px1"]
             buy_exec_time = first_md.name
         else:
             # 判定买单是否等待后成交
-            md = future_data.iloc[1:]
-            md = future_data.copy()
+            md = future_md.iloc[1:]
+            md = future_md.copy()
             buy_executable = md[
                 (md["ask_px1"] <= buy_px)
                 | ((md["exec_px"] + self.tick_size / 2 < buy_px) & (md["trade_sz"] > 0))
@@ -76,7 +76,7 @@ class BtsSimplePEU(PnlEstimateUnit):
         # 如果判定卖单是否成交
         sell_exec_time = None
         if buy_exec_time is not None:
-            md = future_data[future_data.index >= buy_exec_time]
+            md = future_md[future_md.index >= buy_exec_time]
             # 判定卖单是否立即成交
             first_md = md.iloc[0]
             if sell_px <= first_md["bid_px1"]:
@@ -109,7 +109,7 @@ class BtsSimplePEU(PnlEstimateUnit):
         waiting = -1
         total_time = -1
         if (buy_exec_time is not None) and (sell_exec_time is None):
-            last_md = future_data.iloc[-1]
+            last_md = future_md.iloc[-1]
             pnl = round(last_md["bid_px1"] - buy_px, self.digits)
         elif (buy_exec_time is not None) and (sell_exec_time is not None):
             pnl = round(sell_px - buy_px, self.digits)

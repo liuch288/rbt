@@ -38,7 +38,7 @@ class PnlEstimateUnit(Unit):
 
     Example:
         >>> class MyPEU(PnlEstimateUnit):
-        ...     def estimate(self, data, previous_result=None):
+        ...     def estimate(self, future_md, future_unit_results=None):
         ...         # 实现具体的损益评估逻辑
         ...         return {"pnl": 100.0, "finish_time": 1234567890}
     """

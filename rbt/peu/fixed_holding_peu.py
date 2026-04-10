@@ -35,7 +35,7 @@ class FixedHoldingPEU(PnlEstimateUnit):
         
     Example:
         >>> peu = FixedHoldingPEU()
-        >>> result = peu.estimate(data)
+        >>> result = peu.estimate(future_md)
         >>> print(result)
         {'pnl': 0.05, 'long_return': 0.05, 'short_return': -0.05, 
          'max_up_vol': 0.10, 'max_down_vol': 0.08}
@@ -67,9 +67,9 @@ class FixedHoldingPEU(PnlEstimateUnit):
         - max_down_vol: 向下最大波幅（百分比）
         
         Args:
-            data: pandas.DataFrame，包含行情数据。
+            future_md: pandas.DataFrame，包含行情数据。
                   必须包含列：ask_px1（卖一价）、bid_px1（买一价）
-            previous_result: dict，可选的上一轮评估结果（当前未使用）
+            future_unit_results: pandas.DataFrame，可选的上一轮评估结果（当前未使用）
         
         Returns:
             dict: 包含以下字段的评估结果：
@@ -89,23 +89,23 @@ class FixedHoldingPEU(PnlEstimateUnit):
             - 所有收益和波幅均为百分比形式（如 0.05 表示 5%）
         """
         # 检查数据是否为空
-        if data is None or len(data) == 0:
+        if future_md is None or len(future_md) == 0:
             raise ValueError("数据不能为空")
         
         # 检查必要列是否存在
         required_columns = ['ask_px1', 'bid_px1']
         for col in required_columns:
-            if col not in data.columns:
+            if col not in future_md.columns:
                 raise ValueError(f"数据中缺少必要列: {col}")
         
         # 计算中间价
         # 中间价 = (卖一价 + 买一价) / 2
-        data = data.copy()
-        data['mid_px'] = (data['ask_px1'] + data['bid_px1']) / 2
+        future_md = future_md.copy()
+        future_md['mid_px'] = (future_md['ask_px1'] + future_md['bid_px1']) / 2
         
         # 获取第一个和最后一个数据点
-        first_data = data.iloc[0]
-        last_data = data.iloc[-1]
+        first_data = future_md.iloc[0]
+        last_data = future_md.iloc[-1]
         
         # 提取价格
         first_ask = first_data['ask_px1']  # 第一个ask（开多仓价 / 平空仓价）
@@ -114,10 +114,10 @@ class FixedHoldingPEU(PnlEstimateUnit):
         last_bid = last_data['bid_px1']    # 最后一个bid（平多仓价）
         
         # 周期内最高价（使用 ask_px1 的最大值）
-        period_high = data['ask_px1'].max()
+        period_high = future_md['ask_px1'].max()
         
         # 周期内最低价（使用 bid_px1 的最小值）
-        period_low = data['bid_px1'].min()
+        period_low = future_md['bid_px1'].min()
         
         # 第一中间价（用于波幅计算）
         first_mid_px = (first_ask + first_bid) / 2
