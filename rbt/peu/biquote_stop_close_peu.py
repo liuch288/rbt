@@ -48,27 +48,14 @@ class BiquoteStopClosePEU(PnlEstimateUnit):
         buy_order_price = round(
             init_md["bid_px1"] - (self.lb - 1) * self.tick_size, self.digits
         )
-        bid_vol_at_same_level = 0
-        for i in range(1, 6):
-            cur_level_price = init_md[f"bid_px{i}"]
-            cur_level_vol = init_md[f"bid_sz{i}"]
-            if cur_level_price == buy_order_price:
-                bid_vol_at_same_level = cur_level_vol
-            elif cur_level_price < buy_order_price:
-                break
+        # TODO: 排单量简化为仅使用一档，不再遍历多档行情
+        bid_vol_at_same_level = init_md["bid_sz1"]
         buy_order = Order(buy_order_price, 1, 1, bid_vol_at_same_level)
         # ask
         sell_order_price = round(
             init_md["ask_px1"] + (self.la - 1) * self.tick_size, self.digits
         )
-        ask_vol_at_same_level = 0
-        for i in range(1, 6):
-            cur_level_price = init_md[f"ask_px{i}"]
-            cur_level_vol = init_md[f"ask_sz{i}"]
-            if cur_level_price == sell_order_price:
-                ask_vol_at_same_level = cur_level_vol
-            elif cur_level_price > sell_order_price:
-                break
+        ask_vol_at_same_level = init_md["ask_sz1"]
         sell_order = Order(sell_order_price, 1, -1, ask_vol_at_same_level)
 
         # 逐行核对是否成交
@@ -140,10 +127,7 @@ class BiquoteStopClosePEU(PnlEstimateUnit):
                             cur_ask1 = cur_md["ask_px1"]
                             if cur_ask1 > 0.0:
                                 price = min(price, cur_ask1)
-                        volume_before = 0
-                        for i in range(1, 6):
-                            if cur_md[f"{dir_str}_px{i}"] == price:
-                                volume_before = cur_md[f"{dir_str}_sz{i}"]
+                        volume_before = cur_md[f"{dir_str}_sz1"]
                         closing_order = Order(price, abs(inventory), dir, volume_before)
                     else:
                         for mo in cur_md["MoSplitDMU_v0_auto__exec_before"]:
