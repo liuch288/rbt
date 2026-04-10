@@ -37,10 +37,10 @@ class SimpleBiquotePEU(PnlEstimateUnit):
     def get_param_str(self):
         return f"{self.bid_price_key}_{self.ask_price_key}_{self.watching_time}"
 
-    def estimate(self, future_md, future_unit_results=None) -> dict:
+    def estimate(self, future_data) -> dict:
         # 确定报单价格
-        buy_px = future_unit_results[self.bid_price_key]
-        sell_px = future_unit_results[self.ask_price_key]
+        buy_px = future_data.iloc[0][self.bid_price_key]
+        sell_px = future_data.iloc[0][self.ask_price_key]
         if buy_px is None or sell_px is None:
             return {
                 "pnl": 0.0,
@@ -51,8 +51,8 @@ class SimpleBiquotePEU(PnlEstimateUnit):
             }
 
         # 准备变量
-        first_md = future_md.iloc[0]
-        last_md = future_md.iloc[-1]
+        first_md = future_data.iloc[0]
+        last_md = future_data.iloc[-1]
         buy_executed = False
         buy_exec_time = None
         sell_executed = False
@@ -64,7 +64,7 @@ class SimpleBiquotePEU(PnlEstimateUnit):
             buy_px = first_md["ask_px1"]
             buy_exec_time = first_md.name
         else:
-            buy_executable = future_md[future_md["ask_px1"] <= buy_px]
+            buy_executable = future_data[future_data["ask_px1"] <= buy_px]
             if not buy_executable.empty:
                 buy_executed = True
                 buy_exec_time = buy_executable.iloc[0].name
@@ -75,7 +75,7 @@ class SimpleBiquotePEU(PnlEstimateUnit):
             sell_px = first_md["bid_px1"]
             sell_exec_time = first_md.name
         else:
-            sell_executable = future_md[future_md["bid_px1"] >= sell_px]
+            sell_executable = future_data[future_data["bid_px1"] >= sell_px]
             if not sell_executable.empty:
                 sell_executed = True
                 sell_exec_time = sell_executable.iloc[0].name

@@ -70,9 +70,9 @@ class BiquotePEU(PnlEstimateUnit):
     def get_param_str(self):
         return f"{self.order_maintaining_time}_{self.lb}_{self.la}"
 
-    def estimate(self, future_md, future_unit_results=None) -> dict:
+    def estimate(self, future_data) -> dict:
         # 确定有多少订单排在前面
-        init_md = future_md.iloc[0]
+        init_md = future_data.iloc[0]
         start_time = init_md.name
         # bid
         buy_order_price = round(
@@ -104,13 +104,13 @@ class BiquotePEU(PnlEstimateUnit):
         # 逐行核对是否成交
         inventory = 0
         pnl = 0.0
-        # future_md_len = len(future_md)
+        # future_data_len = len(future_data)
         # 此处-3是因为最后3行要用于判定平仓价格
         buy_order_executed = False
         buy_order_exec_time = None
         sell_order_executed = False
         sell_order_exec_time = None
-        for cur_time, cur_md in future_md.iterrows():
+        for cur_time, cur_md in future_data.iterrows():
             cur_bid1 = cur_md["bid_px1"]
             cur_ask1 = cur_md["ask_px1"]
             time_diff = (cur_time - start_time).total_seconds()

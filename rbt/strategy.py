@@ -137,13 +137,13 @@ class Strategy(object):
                 future_md = self.md_engine.get_future_md(
                     peu.watching_time, peu.watching_mds
                 )
-                # 构建 future_unit_results：从 loaded_data 中取与 future_md 同时间范围的数据
-                future_unit_results = None
+                # 将依赖的 unit 结果拼接到 future_md 中
                 if peu.dependencies():
                     future_unit_results = loaded_data.loc[
                         loaded_data.index.isin(future_md.index)
                     ]
-                result = peu.estimate(future_md, future_unit_results)
+                    future_md = pd.concat([future_md, future_unit_results], axis=1)
+                result = peu.estimate(future_md)
                 for key in result.keys():
                     unit_results[f"{peu_name}__{key}"] = result[key]
             self.unit_results[cur_time] = unit_results

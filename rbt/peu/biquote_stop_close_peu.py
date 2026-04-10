@@ -37,8 +37,8 @@ class BiquoteStopClosePEU(PnlEstimateUnit):
     def get_param_str(self):
         return f"{self.total_watching_time}_{self.start_closing_time}_{self.active_closing_time}_{self.lb}_{self.la}_{self.stop_loss_ticks}"
 
-    def estimate(self, future_md, future_unit_results=None) -> dict:
-        init_md = future_md.iloc[0]
+    def estimate(self, future_data) -> dict:
+        init_md = future_data.iloc[0]
         start_time = init_md.name
         # 确定有多少订单排在前面
         # bid
@@ -78,7 +78,7 @@ class BiquoteStopClosePEU(PnlEstimateUnit):
         sell_order_exec_time = None
         original_price_close = False
         closing_order = None
-        for cur_time, cur_md in future_md.iterrows():
+        for cur_time, cur_md in future_data.iterrows():
             cur_bid1 = cur_md["bid_px1"]
             cur_ask1 = cur_md["ask_px1"]
             time_diff = (cur_time - start_time).total_seconds()
