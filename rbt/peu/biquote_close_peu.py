@@ -34,6 +34,9 @@ class BiquoteClosePEU(PnlEstimateUnit):
     def get_param_str(self):
         return f"{self.total_watching_time}_{self.start_closing_time}_{self.active_closing_time}_{self.lb}_{self.la}"
 
+    def dependencies(self):
+        return ["MoSplitDMU_v0_auto"]
+
     def estimate(self, future_data) -> dict:
         init_md = future_data.iloc[0]
         start_time = init_md.name
@@ -75,6 +78,7 @@ class BiquoteClosePEU(PnlEstimateUnit):
         sell_order_exec_time = None
         original_price_close = False
         closing_order = None
+        is_first_row = True
         for cur_time, cur_md in future_data.iterrows():
             cur_bid1 = cur_md["bid_px1"]
             cur_ask1 = cur_md["ask_px1"]
@@ -95,24 +99,25 @@ class BiquoteClosePEU(PnlEstimateUnit):
                         sell_order_executed = True
                         sell_order_exec_time = cur_md.name
 
-                # 然后根据后续市价单判定
-                for exec in cur_md["exec_after"]:
-                    if not buy_order_executed:
-                        res = buy_order.check_execution(exec)
-                        if res["volume"] > 0:
-                            inventory += res["volume"]
-                            pnl += res["cash_flow"]
-                            if buy_order.volume <= 0:
-                                buy_order_executed = True
-                                buy_order_exec_time = cur_md.name
-                    if not sell_order_executed:
-                        res = sell_order.check_execution(exec)
-                        if res["volume"] > 0:
-                            inventory -= res["volume"]
-                            pnl += res["cash_flow"]
-                            if sell_order.volume <= 0:
-                                sell_order_executed = True
-                                sell_order_exec_time = cur_md.name
+                # 跳过下单行的 exec_before，从后续行开始判定
+                if not is_first_row:
+                    for mo in cur_md["MoSplitDMU_v0_auto__exec_before"]:
+                        if not buy_order_executed:
+                            res = buy_order.check_execution(mo)
+                            if res["volume"] > 0:
+                                inventory += res["volume"]
+                                pnl += res["cash_flow"]
+                                if buy_order.volume <= 0:
+                                    buy_order_executed = True
+                                    buy_order_exec_time = cur_md.name
+                        if not sell_order_executed:
+                            res = sell_order.check_execution(mo)
+                            if res["volume"] > 0:
+                                inventory -= res["volume"]
+                                pnl += res["cash_flow"]
+                                if sell_order.volume <= 0:
+                                    sell_order_executed = True
+                                    sell_order_exec_time = cur_md.name
                 if buy_order_executed and sell_order_executed:
                     break
             # 第二部分时间：原价平仓或止盈平仓
@@ -138,8 +143,8 @@ class BiquoteClosePEU(PnlEstimateUnit):
                                 volume_before = cur_md[f"{dir_str}_sz{i}"]
                         closing_order = Order(price, abs(inventory), dir, volume_before)
                     else:
-                        for exec in cur_md["exec_after"]:
-                            res = closing_order.check_execution(exec)
+                        for mo in cur_md["MoSplitDMU_v0_auto__exec_before"]:
+                            res = closing_order.check_execution(mo)
                             if res["volume"] > 0:
                                 inventory += res["volume"] * closing_order.direction
                                 pnl += res["cash_flow"]
@@ -152,6 +157,7 @@ class BiquoteClosePEU(PnlEstimateUnit):
                 cur_spread = round((cur_ask1 - cur_bid1) / self.tick_size)
                 if cur_spread < 2:
                     break
+            is_first_row = False
 
         if inventory > 0:
             pnl += cur_bid1 * inventory
