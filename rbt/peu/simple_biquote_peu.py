@@ -37,10 +37,10 @@ class SimpleBiquotePEU(PnlEstimateUnit):
     def get_param_str(self):
         return f"{self.bid_price_key}_{self.ask_price_key}_{self.watching_time}"
 
-    def estimate(self, future_data, previous_result=None, *args, **kwargs) -> dict:
+    def estimate(self, future_data) -> dict:
         # 确定报单价格
-        buy_px = previous_result[self.bid_price_key]
-        sell_px = previous_result[self.ask_price_key]
+        buy_px = future_data.iloc[0][self.bid_price_key]
+        sell_px = future_data.iloc[0][self.ask_price_key]
         if buy_px is None or sell_px is None:
             return {
                 "pnl": 0.0,

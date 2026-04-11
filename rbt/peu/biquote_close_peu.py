@@ -2,6 +2,37 @@ from .pnl_estimate_unit import PnlEstimateUnit
 from .biquote_peu import Order
 
 
+def _detect_levels(md, max_levels=5):
+    """探测行情数据中可用的档位数（至少返回1）"""
+    for i in range(max_levels, 1, -1):
+        key = f"bid_px{i}"
+        if key in md.index and md[key] != 0.0:
+            return i
+    return 1
+
+
+def _get_volume_before(md, order_price, side, tick_size, max_levels=5):
+    """根据订单簿计算排在本订单前面的挂单量，优先利用多档行情，只有一档时退化"""
+    levels = _detect_levels(md, max_levels)
+    if levels <= 1:
+        return md[f"{side}_sz1"]
+    total_vol = 0
+    for i in range(1, levels + 1):
+        px = md[f"{side}_px{i}"]
+        sz = md[f"{side}_sz{i}"]
+        if px == 0.0:
+            continue
+        if side == "bid":
+            if px >= order_price or abs(px - order_price) < tick_size / 2:
+                total_vol += sz
+        else:
+            if px <= order_price or abs(px - order_price) < tick_size / 2:
+                total_vol += sz
+    if total_vol == 0:
+        total_vol = md[f"{side}_sz1"]
+    return total_vol
+
+
 class BiquoteClosePEU(PnlEstimateUnit):
     version = "v0"
 
@@ -34,7 +65,10 @@ class BiquoteClosePEU(PnlEstimateUnit):
     def get_param_str(self):
         return f"{self.total_watching_time}_{self.start_closing_time}_{self.active_closing_time}_{self.lb}_{self.la}"
 
-    def estimate(self, future_data, previous_result=None, *args, **kwargs) -> dict:
+    def dependencies(self):
+        return ["MoSplitDMU_v0_auto"]
+
+    def estimate(self, future_data) -> dict:
         init_md = future_data.iloc[0]
         start_time = init_md.name
         # 确定有多少订单排在前面
@@ -42,27 +76,13 @@ class BiquoteClosePEU(PnlEstimateUnit):
         buy_order_price = round(
             init_md["bid_px1"] - (self.lb - 1) * self.tick_size, self.digits
         )
-        bid_vol_at_same_level = 0
-        for i in range(1, 6):
-            cur_level_price = init_md[f"bid_px{i}"]
-            cur_level_vol = init_md[f"bid_sz{i}"]
-            if cur_level_price == buy_order_price:
-                bid_vol_at_same_level = cur_level_vol
-            elif cur_level_price < buy_order_price:
-                break
+        bid_vol_at_same_level = _get_volume_before(init_md, buy_order_price, "bid", self.tick_size)
         buy_order = Order(buy_order_price, 1, 1, bid_vol_at_same_level)
         # ask
         sell_order_price = round(
             init_md["ask_px1"] + (self.la - 1) * self.tick_size, self.digits
         )
-        ask_vol_at_same_level = 0
-        for i in range(1, 6):
-            cur_level_price = init_md[f"ask_px{i}"]
-            cur_level_vol = init_md[f"ask_sz{i}"]
-            if cur_level_price == sell_order_price:
-                ask_vol_at_same_level = cur_level_vol
-            elif cur_level_price > sell_order_price:
-                break
+        ask_vol_at_same_level = _get_volume_before(init_md, sell_order_price, "ask", self.tick_size)
         sell_order = Order(sell_order_price, 1, -1, ask_vol_at_same_level)
 
         # 逐行核对是否成交
@@ -75,6 +95,7 @@ class BiquoteClosePEU(PnlEstimateUnit):
         sell_order_exec_time = None
         original_price_close = False
         closing_order = None
+        is_first_row = True
         for cur_time, cur_md in future_data.iterrows():
             cur_bid1 = cur_md["bid_px1"]
             cur_ask1 = cur_md["ask_px1"]
@@ -95,24 +116,25 @@ class BiquoteClosePEU(PnlEstimateUnit):
                         sell_order_executed = True
                         sell_order_exec_time = cur_md.name
 
-                # 然后根据后续市价单判定
-                for exec in cur_md["exec_after"]:
-                    if not buy_order_executed:
-                        res = buy_order.check_execution(exec)
-                        if res["volume"] > 0:
-                            inventory += res["volume"]
-                            pnl += res["cash_flow"]
-                            if buy_order.volume <= 0:
-                                buy_order_executed = True
-                                buy_order_exec_time = cur_md.name
-                    if not sell_order_executed:
-                        res = sell_order.check_execution(exec)
-                        if res["volume"] > 0:
-                            inventory -= res["volume"]
-                            pnl += res["cash_flow"]
-                            if sell_order.volume <= 0:
-                                sell_order_executed = True
-                                sell_order_exec_time = cur_md.name
+                # 跳过下单行的 exec_before，从后续行开始判定
+                if not is_first_row:
+                    for mo in cur_md["MoSplitDMU_v0_auto__exec_before"]:
+                        if not buy_order_executed:
+                            res = buy_order.check_execution(mo)
+                            if res["volume"] > 0:
+                                inventory += res["volume"]
+                                pnl += res["cash_flow"]
+                                if buy_order.volume <= 0:
+                                    buy_order_executed = True
+                                    buy_order_exec_time = cur_md.name
+                        if not sell_order_executed:
+                            res = sell_order.check_execution(mo)
+                            if res["volume"] > 0:
+                                inventory -= res["volume"]
+                                pnl += res["cash_flow"]
+                                if sell_order.volume <= 0:
+                                    sell_order_executed = True
+                                    sell_order_exec_time = cur_md.name
                 if buy_order_executed and sell_order_executed:
                     break
             # 第二部分时间：原价平仓或止盈平仓
@@ -132,14 +154,11 @@ class BiquoteClosePEU(PnlEstimateUnit):
                             cur_ask1 = cur_md["ask_px1"]
                             if cur_ask1 > 0.0:
                                 price = min(price, cur_ask1)
-                        volume_before = 0
-                        for i in range(1, 6):
-                            if cur_md[f"{dir_str}_px{i}"] == price:
-                                volume_before = cur_md[f"{dir_str}_sz{i}"]
+                        volume_before = cur_md[f"{dir_str}_sz1"]
                         closing_order = Order(price, abs(inventory), dir, volume_before)
                     else:
-                        for exec in cur_md["exec_after"]:
-                            res = closing_order.check_execution(exec)
+                        for mo in cur_md["MoSplitDMU_v0_auto__exec_before"]:
+                            res = closing_order.check_execution(mo)
                             if res["volume"] > 0:
                                 inventory += res["volume"] * closing_order.direction
                                 pnl += res["cash_flow"]
@@ -152,6 +171,7 @@ class BiquoteClosePEU(PnlEstimateUnit):
                 cur_spread = round((cur_ask1 - cur_bid1) / self.tick_size)
                 if cur_spread < 2:
                     break
+            is_first_row = False
 
         if inventory > 0:
             pnl += cur_bid1 * inventory

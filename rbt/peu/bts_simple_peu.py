@@ -43,7 +43,7 @@ class BtsSimplePEU(PnlEstimateUnit):
             f"{self.watching_time}_{self.buy_shift}_{self.sell_shift}_{self.stop_loss}"
         )
 
-    def estimate(self, future_data, *args, **kwargs) -> dict:
+    def estimate(self, future_data) -> dict:
         future_data["mid_px"] = (future_data["bid_px1"] + future_data["ask_px1"]) / 2
         future_data["exec_px"] = (
             future_data["trade_notional"] / future_data["trade_sz"] / self.hands

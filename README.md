@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.19
+**版本：** 0.20
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -69,6 +69,8 @@ rbt/
 | `biquote_close_peu` | 收盘价盈亏估算 |
 | `biquote_stop_close_peu` | 止损盈亏估算 |
 | `bts_simple_peu` | 简单回测盈亏 |
+| `simple_biquote_peu` | 简单双边下单盈亏 |
+| `fixed_holding_peu` | 固定持有期限收益评估 |
 
 ## IC 指标计算器
 
@@ -179,6 +181,14 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.20 (2026-04-11)
+- **PEU estimate 签名简化**: `estimate(future_md, future_unit_results=None)` 合并为 `estimate(future_data)`
+  - Strategy 在调用前通过 `pd.concat` 将行情数据与依赖的 unit 结果拼接为单一 DataFrame
+  - PEU 子类只需关注一个入参，无需处理两个 DataFrame 的对齐问题
+  - 无 dependencies 的 PEU 不触发拼接，零额外开销
+- **所有 PEU 子类适配**: BiquotePEU、BiquoteClosePEU、BiquoteStopClosePEU、BtsSimplePEU、SimpleBiquotePEU、FixedHoldingPEU 统一更新签名和方法体变量名
+- **新增 FixedHoldingPEU**: 固定持有期限收益评估，计算 pnl、long_return、short_return、max_up_vol、max_down_vol
 
 ### v0.19 (2026-04-10)
 - **PEU estimate 签名重构**: `estimate(data, previous_result)` 改为 `estimate(future_md, future_unit_results=None)`

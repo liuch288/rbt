@@ -38,7 +38,7 @@ class PnlEstimateUnit(Unit):
 
     Example:
         >>> class MyPEU(PnlEstimateUnit):
-        ...     def estimate(self, data, previous_result=None):
+        ...     def estimate(self, future_data):
         ...         # 实现具体的损益评估逻辑
         ...         return {"pnl": 100.0, "finish_time": 1234567890}
     """
@@ -75,19 +75,18 @@ class PnlEstimateUnit(Unit):
         self.watching_time = watching_time
         self.watching_mds = watching_mds
 
-    def estimate(self, future_md, future_unit_results=None) -> dict:
+    def estimate(self, future_data) -> dict:
         """
         评估交易规则在给定行情数据上的损益
 
         这是 PEU 的核心方法，子类需要实现具体的评估逻辑。
-        方法接收未来行情数据和对应时间范围的 DMU 结果，模拟订单执行过程，返回预估的损益结果。
+        方法接收未来一段时间的数据（行情 + 依赖的 unit 结果已由 Strategy 拼接），
+        模拟订单执行过程，返回预估的损益结果。
 
         Args:
-            future_md: pandas.DataFrame，未来一段时间的行情数据，第一行为当前可见行情。
-                       具体列结构由子类定义，通常包含价格、成交量等信息。
-            future_unit_results: pandas.DataFrame，可选。index 为时间戳，columns 为因子名。
-                                 时间窗口与 future_md 一致，包含 dependencies 声明的 unit 计算结果。
-                                 如果 PEU 不依赖任何 unit 输出，可以为 None。
+            future_data: pandas.DataFrame，未来一段时间的数据，第一行为当前可见行情。
+                         包含行情列（价格、成交量等）以及 dependencies 声明的 unit 计算结果列。
+                         由 Strategy 将行情数据与 unit 结果拼接后传入。
 
         Returns:
             dict: 损益评估结果，包含以下字段：
@@ -99,3 +98,4 @@ class PnlEstimateUnit(Unit):
             NotImplementedError: 子类未实现此方法时抛出
         """
         raise NotImplementedError("Subclass must implement estimate() method")
+
