@@ -2,6 +2,37 @@ from .pnl_estimate_unit import PnlEstimateUnit
 from .biquote_peu import Order
 
 
+def _detect_levels(md, max_levels=5):
+    """探测行情数据中可用的档位数（至少返回1）"""
+    for i in range(max_levels, 1, -1):
+        key = f"bid_px{i}"
+        if key in md.index and md[key] != 0.0:
+            return i
+    return 1
+
+
+def _get_volume_before(md, order_price, side, tick_size, max_levels=5):
+    """根据订单簿计算排在本订单前面的挂单量，优先利用多档行情，只有一档时退化"""
+    levels = _detect_levels(md, max_levels)
+    if levels <= 1:
+        return md[f"{side}_sz1"]
+    total_vol = 0
+    for i in range(1, levels + 1):
+        px = md[f"{side}_px{i}"]
+        sz = md[f"{side}_sz{i}"]
+        if px == 0.0:
+            continue
+        if side == "bid":
+            if px >= order_price or abs(px - order_price) < tick_size / 2:
+                total_vol += sz
+        else:
+            if px <= order_price or abs(px - order_price) < tick_size / 2:
+                total_vol += sz
+    if total_vol == 0:
+        total_vol = md[f"{side}_sz1"]
+    return total_vol
+
+
 class BiquoteClosePEU(PnlEstimateUnit):
     version = "v0"
 
@@ -45,14 +76,13 @@ class BiquoteClosePEU(PnlEstimateUnit):
         buy_order_price = round(
             init_md["bid_px1"] - (self.lb - 1) * self.tick_size, self.digits
         )
-        # TODO: 排单量简化为仅使用一档，不再遍历多档行情
-        bid_vol_at_same_level = init_md["bid_sz1"]
+        bid_vol_at_same_level = _get_volume_before(init_md, buy_order_price, "bid", self.tick_size)
         buy_order = Order(buy_order_price, 1, 1, bid_vol_at_same_level)
         # ask
         sell_order_price = round(
             init_md["ask_px1"] + (self.la - 1) * self.tick_size, self.digits
         )
-        ask_vol_at_same_level = init_md["ask_sz1"]
+        ask_vol_at_same_level = _get_volume_before(init_md, sell_order_price, "ask", self.tick_size)
         sell_order = Order(sell_order_price, 1, -1, ask_vol_at_same_level)
 
         # 逐行核对是否成交
