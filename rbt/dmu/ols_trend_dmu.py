@@ -9,6 +9,10 @@ class OlsTrendDMU(DecisionMakingUnit):
         self.order = order
         self.ols_trend_ic = OlsTrendIC(window_size, order)
 
+    def on_end_of_day(self):
+        """日终重置内部 OLS IC 状态"""
+        self.ols_trend_ic.reset()
+
     def get_param_str(self):
         return f"{self.order}_{self.window_size}"
     

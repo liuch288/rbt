@@ -8,6 +8,10 @@ class MidPositionPnlDMU(DecisionMakingUnit):
         super().__init__()
         self.positions = {}  # 用于存储之前的位置和成本
 
+    def on_end_of_day(self):
+        """日终重置持仓和现金流"""
+        self.positions = {}
+
     def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         pnl_results = {}
         for key, current_position in previous_result.items():

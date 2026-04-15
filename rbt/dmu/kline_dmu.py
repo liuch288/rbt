@@ -26,6 +26,18 @@ class KlineDMU(DecisionMakingUnit):
         self.kline_volume = None  # K线成交量
         self.kline_oi_diff = None  # K线持仓量变动
 
+    def on_end_of_day(self):
+        """日终重置K线状态"""
+        self.current_kline_end = None
+        self.kline_init_volume = None
+        self.kline_init_oi = None
+        self.kline_open = None
+        self.kline_high = None
+        self.kline_low = None
+        self.kline_close = None
+        self.kline_volume = None
+        self.kline_oi_diff = None
+
     def get_param_str(self):
         """
         生成参数信息，用于更新单元名称。

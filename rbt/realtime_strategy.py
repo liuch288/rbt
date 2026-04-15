@@ -30,3 +30,8 @@ class RealtimeStrategy(object):
                 unit_results[f"{dmu.name}__{key}"] = result[key]
 
         return unit_results
+
+    def on_end_of_day(self):
+        """日终处理，遍历所有 DMU 执行日终逻辑"""
+        for dmu in self.dmus:
+            dmu.on_end_of_day()

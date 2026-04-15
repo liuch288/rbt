@@ -49,6 +49,14 @@ class Unit(object):
         """
         return []
 
+    def on_end_of_day(self):
+        """日终处理函数
+
+        在每个交易日结束时调用。默认不做任何事（支持跨日）。
+        需要日终重置的子类应重写此方法。
+        """
+        pass
+
     def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
         """注册合约信息
 

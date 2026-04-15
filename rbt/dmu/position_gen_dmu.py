@@ -14,6 +14,11 @@ class PositionGenDMU(DecisionMakingUnit):
         if smooth:
             self.smoother[rule_name] = SmoothIC()
 
+    def on_end_of_day(self):
+        """日终重置内部 smoother IC 状态"""
+        for key in self.smoother:
+            self.smoother[key].reset()
+
     def make_decision(self, new_data, prev_result) -> dict:
         decision = {}
         for rule_name, rule_detail, target_position, smooth in self.rules:
