@@ -7,8 +7,5 @@ class RangeMaxIC(IndexCalculator):
     def __init__(self, period):
         super().__init__(period)
 
-    def calculate(self, new_data):
-        pass
-
     def calculate_after_insertion(self):
         self.result = max(self.data)

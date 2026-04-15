@@ -9,9 +9,6 @@ class KurtosisIC(IndexCalculator):
     def __init__(self, period=20):
         super().__init__(period)
 
-    def calculate(self, new_data):
-        pass
-
     def calculate_after_insertion(self):
         if self.data_count < self.period:
             return
