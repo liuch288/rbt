@@ -2,6 +2,7 @@ from .index_calculator import IndexCalculator
 
 
 class FirstHitIC(IndexCalculator):
+    """首次触发检测器。当输入值的绝对值首次达到 threshold 时输出 +1/-1（表示方向），之后保持 0 直到输入回到 0 后重置。"""
     def __init__(self, threshold):
         super().__init__(1)
         self.threshold = abs(threshold)

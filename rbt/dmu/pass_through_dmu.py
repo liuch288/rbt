@@ -9,7 +9,7 @@ from rbt.dmu import DecisionMakingUnit
 class PassThroughDMU(DecisionMakingUnit):
     """PassThrough DMU - 将原始tick数据的关键字段存入ResultDB"""
     
-    version = "v1"
+    version = "v0"
 
     def __init__(self, fields=None):
         """

@@ -3,6 +3,7 @@ from .mean_ic import MeanIC
 
 
 class VarianceIC(IndexCalculator):
+    """滑动窗口方差计算器。利用 E[X²] - E[X]² 公式，基于两个 MeanIC 实例增量计算方差。"""
     def __init__(self, period):
         super().__init__(1)
         self.exp_squared = MeanIC(period)  # 用于计算平方的期望

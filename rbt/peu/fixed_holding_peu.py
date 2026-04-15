@@ -41,7 +41,7 @@ class FixedHoldingPEU(PnlEstimateUnit):
          'max_up_vol': 0.10, 'max_down_vol': 0.08}
     """
 
-    version = "v1"
+    version = "v0"
 
     def __init__(self, watching_time: float = None, watching_mds: int = None):
         """

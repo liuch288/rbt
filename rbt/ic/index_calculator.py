@@ -2,6 +2,7 @@ from collections import deque
 
 
 class IndexCalculator:
+    """IC 基类，提供滑动窗口数据管理和 calculate 接口。子类实现 calculate 方法完成具体指标计算。"""
     def __init__(self, period):
         self.data = deque(maxlen=period)
         self.result = None
@@ -22,9 +23,9 @@ class IndexCalculator:
 
     def calculate(self, new_data):
         """
-        计算指标的具体实现，需要在子类中重写。
+        在数据插入前的计算，可以在子类中重写。
         """
-        raise NotImplementedError("Subclasses should implement this!")
+        pass
     
     def calculate_after_insertion(self):
         """

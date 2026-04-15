@@ -3,7 +3,7 @@ import datetime
 
 
 class KlineDMU(DecisionMakingUnit):
-    version = "v1"
+    version = "v0"
 
     def __init__(self, interval: int = 1, start_time: datetime.time = None):
         """

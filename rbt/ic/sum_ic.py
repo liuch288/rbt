@@ -2,6 +2,7 @@ from .index_calculator import IndexCalculator
 
 
 class SumIC(IndexCalculator):
+    """滑动窗口求和。在窗口内维护累计和，窗口满后增量更新。"""
     def __init__(self, period):
         super().__init__(period)
         self.result = 0

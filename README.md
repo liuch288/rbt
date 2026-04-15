@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.20
+**版本：** 0.21
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -76,13 +76,23 @@ rbt/
 
 | 模块 | 说明 |
 |------|------|
-| `mean_ic` | 移动平均 |
-| `variance_ic` | 方差/波动率 |
-| `rolling_kline_ic` | 滚动K线数据 |
-| `sum_ic` | 累计求和 |
-| `smooth_ic` | 价格平滑 |
-| `first_hit_ic` | 首次触及检测 |
-| `mos_recover_ic` | MOS恢复计算 |
+| `mean_ic` | 简单移动平均（SMA） |
+| `ema_ic` | 指数移动平均（EMA），支持异常值检测 |
+| `variance_ic` | 滑动窗口方差 |
+| `sum_ic` | 滑动窗口求和 |
+| `diff_ic` | 差分（当前值与 N 期前值的差） |
+| `diff_rate_ic` | 变化率（相对 N 期前值的百分比变化） |
+| `range_min_ic` | 滑动窗口最小值 |
+| `range_max_ic` | 滑动窗口最大值 |
+| `min_max_ic` | 全局最小/最大值追踪 |
+| `rolling_kline_ic` | 滚动K线（open/close/high/low） |
+| `smooth_ic` | 价格平滑（连续相同值过滤） |
+| `first_hit_ic` | 首次触及阈值检测 |
+| `correlation_ic` | 皮尔逊相关系数（滑动窗口） |
+| `skewness_ic` | 偏度（滑动窗口） |
+| `kurtosis_ic` | 峰度（滑动窗口） |
+| `ols_trend_ic` | OLS 线性回归趋势 |
+| `mos_recover_ic` | 市价单还原（订单簿差分推断） |
 
 ## 使用示例
 
@@ -178,9 +188,20 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 
 - Python 3.x
 - pandas
+- numpy
+- cvxpy
+- scipy
+- scikit-learn
 - progressbar2
 
 ## 更新日志
+
+### v0.21 (2026-04-16)
+- **新增 IC**: DiffIC（差分）、DiffRateIC（变化率）、CorrelationIC（相关系数）、SkewnessIC（偏度）、KurtosisIC（峰度）、RangeMinIC（滑动窗口最小值）、RangeMaxIC（滑动窗口最大值）
+- **PEU 排单量优化**: BiquotePEU、BiquoteClosePEU、BiquoteStopClosePEU 的排单量计算改为动态探测多档行情，优先利用可用档位累加同价位及更优价位的挂单量，仅一档时退化为 bid_sz1/ask_sz1
+- **IC docstring 补全**: 所有 IC 类（含基类 IndexCalculator）补充 docstring
+- **Unit version 统一**: 所有 unit 的 version 统一为 v0
+- **依赖声明完善**: setup.py 补充 scipy、scikit-learn、progressbar2
 
 ### v0.20 (2026-04-11)
 - **PEU estimate 签名简化**: `estimate(future_md, future_unit_results=None)` 合并为 `estimate(future_data)`
