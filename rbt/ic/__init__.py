@@ -5,6 +5,8 @@ from .mean_ic import MeanIC
 from .min_max_ic import MinMaxIC
 from .mos_recover_ic import MosRecoverIC
 from .ols_trend_ic import OlsTrendIC
+from .range_max_ic import RangeMaxIC
+from .range_min_ic import RangeMinIC
 from .rolling_kline_ic import RollingKlineIC
 from .smooth_ic import SmoothIC
 from .sum_ic import SumIC
