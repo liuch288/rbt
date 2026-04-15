@@ -18,7 +18,7 @@ from rbt.dmu import DecisionMakingUnit
 class TimePeriodDMU(DecisionMakingUnit):
     """Time Period DMU - 根据时间划分交易时间段"""
     
-    version = "v1"
+    version = "v0"
 
     # 时间段定义: (开始时间, 结束时间, 标识)
     PERIODS = [

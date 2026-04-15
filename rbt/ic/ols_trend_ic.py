@@ -7,6 +7,7 @@ from rbt.ic.index_calculator import IndexCalculator
 
 
 class OlsTrendIC(IndexCalculator):
+    """OLS 线性回归趋势指标。在滑动窗口内拟合线性回归，输出斜率(coefficient)、截距、R²、MSE。支持 order=0（仅截距）和 order=1（含斜率）两种模式。"""
     def __init__(self, window_size: int = 60, order:int=1):
         super().__init__(window_size)
         self.window_size = window_size

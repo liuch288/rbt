@@ -1,6 +1,7 @@
 from .index_calculator import IndexCalculator
 
 class MinMaxIC(IndexCalculator):
+    """全局最小值/最大值追踪器。持续记录历史最小和最大值，result 为 {"min": ..., "max": ...}。"""
     def __init__(self):
         super().__init__(1)
         self.min_value = float('inf')  # 初始化为正无穷大

@@ -2,6 +2,7 @@ from .index_calculator import IndexCalculator
 
 
 class MeanIC(IndexCalculator):
+    """简单移动平均（SMA），在滑动窗口内计算算术平均值。"""
     def __init__(self, period):
         super().__init__(period)
         self.sum = 0  # 累计值

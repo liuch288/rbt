@@ -2,6 +2,7 @@ from .index_calculator import IndexCalculator
 
 
 class EmaIC(IndexCalculator):
+    """指数移动平均（EMA）。支持异常值检测：当新值与上一结果偏差超过 threshold 时，使用更保守的 alpha_critical 平滑。"""
     def __init__(
         self, alpha: float, threshold: float = 100.0, alpha_critical: float = 0.2
     ):

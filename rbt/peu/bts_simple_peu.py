@@ -10,7 +10,7 @@ class BtsSimplePEU(PnlEstimateUnit):
     在买单价成交后，策略才发出卖单，卖单为买一价上浮m个最小报价单位，m同样由用户设定。
     """
 
-    version = "v1"
+    version = "v0"
 
     def __init__(
         self,

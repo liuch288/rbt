@@ -9,7 +9,7 @@ class SimpleBiquotePEU(PnlEstimateUnit):
     如果在最后一个行情戳还有头寸，则按对手价平仓。
     """
 
-    version = "v1"
+    version = "v0"
 
     def __init__(
         self,
