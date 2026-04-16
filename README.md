@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.21
+**版本：** 0.22
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -195,6 +195,17 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.22 (2026-04-17)
+- **跨日运行支持（on_end_of_day）**: `Unit` 基类新增 `on_end_of_day()` 钩子方法，默认空操作，子类按需重写以重置日终状态
+  - `RealtimeStrategy.on_end_of_day()` 遍历所有 DMU 执行日终逻辑
+  - `KlineDMU`: 重置所有 K 线状态（open/high/low/close/volume 等）
+  - `TrendDMU`: 重置 MA IC、smoother IC 及趋势方向
+  - `MoIntentionDMU`: 重置买卖量 SumIC
+  - `MoSplitDMU`: 重置 MosRecoverIC 及 last_lob
+  - `OlsTrendDMU`: 重置 OlsTrendIC
+  - `PositionGenDMU`: 重置所有 smoother IC
+  - `PositionPnlDMU` / `MidPositionPnlDMU`: 清空持仓字典
 
 ### v0.21 (2026-04-16)
 - **新增 IC**: DiffIC（差分）、DiffRateIC（变化率）、CorrelationIC（相关系数）、SkewnessIC（偏度）、KurtosisIC（峰度）、RangeMinIC（滑动窗口最小值）、RangeMaxIC（滑动窗口最大值）
