@@ -20,6 +20,12 @@ class MoSplitDMU(DecisionMakingUnit):
     def register_contract_info(self, symbol: str, tick_size=None, hands=None, digits=None):
         self.recover_ic = MosRecoverIC(sym=symbol, md_type=self.md_type)
 
+    def on_end_of_day(self):
+        """日终重置内部 MosRecoverIC 状态"""
+        if self.recover_ic is not None:
+            self.recover_ic.reset()
+            self.recover_ic.last_lob = None
+
     def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         if self.recover_ic is None:
             return {"exec_before": []}

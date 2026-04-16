@@ -27,6 +27,11 @@ class MoIntentionDMU(DecisionMakingUnit):
         self.buy_vol_ic = SumIC(watch_mds)
         self.sell_vol_ic = SumIC(watch_mds)
 
+    def on_end_of_day(self):
+        """日终重置内部 IC 状态"""
+        self.buy_vol_ic.reset()
+        self.sell_vol_ic.reset()
+
     def get_param_str(self):
         return f"{self.watch_mds}"
 

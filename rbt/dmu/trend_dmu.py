@@ -13,6 +13,13 @@ class TrendDMU(DecisionMakingUnit):
         self.last_val = 0.0
         self.last_direction = 0
 
+    def on_end_of_day(self):
+        """日终重置内部 IC 和趋势状态"""
+        self.ma.reset()
+        self.smoother.reset()
+        self.last_val = 0.0
+        self.last_direction = 0
+
     def get_param_str(self):
         return str(self.period)
 
