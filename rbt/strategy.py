@@ -1,3 +1,6 @@
+import datetime
+from typing import List
+
 import pandas as pd
 from progressbar import Bar, ETA, Timer, Percentage, ProgressBar
 
@@ -26,6 +29,28 @@ class Strategy(object):
             "digits": digits,
         }
 
+    def _ensure_contract_info(self, symbol: str):
+        """确保合约信息已设置，如果没有则从 symbol 自动查询"""
+        if self.contract_info is not None and self.contract_info["symbol"] == symbol:
+            return
+        info = get_instrument_info(symbol)
+        if info:
+            self.set_contract_info(
+                symbol=symbol,
+                tick_size=info.get("tick_size"),
+                hands=info.get("hands"),
+                digits=info.get("digits"),
+            )
+
+    def _dispatch_contract_info(self):
+        """将合约信息下发给所有已注册的 unit"""
+        if not self.contract_info:
+            return
+        for dmu in self.dmus:
+            dmu.register_contract_info(**self.contract_info)
+        for peu in self.peus:
+            peu.register_contract_info(**self.contract_info)
+
     def register_dmu(self, dmu: DecisionMakingUnit, recalculate: bool = False):
         if recalculate:
             self.recalculate_dmu_names.append(dmu.name)
@@ -43,26 +68,40 @@ class Strategy(object):
     def register_md_engine(self, md_engine: MdEngine):
         self.md_engine = md_engine
         if self.contract_info is None and md_engine.cur_sym:
-            info = get_instrument_info(md_engine.cur_sym)
-            if info:
-                self.set_contract_info(
-                    symbol=md_engine.cur_sym,
-                    tick_size=info.get("tick_size"),
-                    hands=info.get("hands"),
-                    digits=info.get("digits"),
-                )
+            self._ensure_contract_info(md_engine.cur_sym)
+            self._dispatch_contract_info()
 
     def register_result_db(self, result_db: ResultDB):
         self.result_db = result_db
 
-    def run(self, show_progress: bool = False, bgm: dict = None):
+    def run(self, sym: str, dates, show_progress: bool = False, bgm: dict = None):
+        """运行策略回测
+
+        Args:
+            sym: 合约代码（如 "TS2503"）
+            dates: 单个日期或日期列表。单个日期时等价于单日运行，
+                   列表时按顺序逐日运行并在每日结束后执行日终处理。
+            show_progress: 是否显示进度条
+            bgm: 全局参数
+        """
+        if isinstance(dates, datetime.date):
+            dates = [dates]
+        self._ensure_contract_info(sym)
+        self._dispatch_contract_info()
+        for date in dates:
+            self.md_engine.prepare_data(sym, date)
+            self._run_single_day(sym, date, show_progress=show_progress, bgm=bgm)
+            for dmu in self.dmus:
+                dmu.on_end_of_day()
+            for peu in self.peus:
+                peu.on_end_of_day()
+
+    def _run_single_day(self, cur_sym: str, cur_date, show_progress: bool = False, bgm: dict = None):
+        """单日核心执行逻辑"""
         # STEP 1: 获取已有因子列表（轻量级检查）
-        cur_sym = self.md_engine.cur_sym
-        cur_date = self.md_engine.cur_date
         existed_factors = self.result_db.get_existing_factors(cur_sym, cur_date)
 
         # STEP 2: 加入需要计算的DMU
-        # 用户DMU
         new_dmus = []
         for dmu in self.dmus:
             if not any(col.startswith(dmu.name) for col in existed_factors):
