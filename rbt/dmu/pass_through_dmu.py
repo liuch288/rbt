@@ -8,13 +8,13 @@ from rbt.dmu import DecisionMakingUnit
 
 class PassThroughDMU(DecisionMakingUnit):
     """PassThrough DMU - 将原始tick数据的关键字段存入ResultDB"""
-    
+
     version = "v0"
 
     def __init__(self, fields=None):
         """
         初始化PassThroughDMU。
-        
+
         参数:
             fields (list): 要保存的字段列表，默认为None（保存所有字段）
         """
@@ -44,17 +44,19 @@ class PassThroughDMU(DecisionMakingUnit):
 # 测试
 if __name__ == "__main__":
     import datetime
-    
+
     dmu = PassThroughDMU()
-    
+
     # 模拟tick数据
     tick = {
         "name": datetime.datetime(2026, 1, 5, 9, 30),
         "last_px": 111.65,
         "tot_sz": 1000,
-        "bid1": 111.60, "ask1": 111.65,
-        "bid_vol1": 50, "ask_vol1": 30,
+        "bid1": 111.60,
+        "ask1": 111.65,
+        "bid_vol1": 50,
+        "ask_vol1": 30,
     }
-    
+
     result = dmu.make_decision(tick)
     print("PassThrough result:", result)

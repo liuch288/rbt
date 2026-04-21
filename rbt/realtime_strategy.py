@@ -12,11 +12,11 @@ class RealtimeStrategy(object):
 
     def run_once(self, new_md: pd.Series, bgm: dict = None) -> dict:
         """Process single realtime market data tick
-        
+
         Args:
             new_md: Current market data as pandas Series
             bgm: Backtest global parameters (optional)
-            
+
         Returns:
             dict: Combined results from all DMUs
         """

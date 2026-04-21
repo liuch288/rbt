@@ -69,9 +69,7 @@ class PnlEstimateUnit(Unit):
                 "Do not input watching_time and watching_mds simultaneously"
             )
         if watching_time is None and watching_mds is None:
-            raise ValueError(
-                "watching_time and watching_mds cannot both be None"
-            )
+            raise ValueError("watching_time and watching_mds cannot both be None")
         self.watching_time = watching_time
         self.watching_mds = watching_mds
 
@@ -98,4 +96,3 @@ class PnlEstimateUnit(Unit):
             NotImplementedError: 子类未实现此方法时抛出
         """
         raise NotImplementedError("Subclass must implement estimate() method")
-

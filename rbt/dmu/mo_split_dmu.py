@@ -17,7 +17,9 @@ class MoSplitDMU(DecisionMakingUnit):
     def get_param_str(self):
         return self.md_type
 
-    def register_contract_info(self, symbol: str, tick_size=None, hands=None, digits=None):
+    def register_contract_info(
+        self, symbol: str, tick_size=None, hands=None, digits=None
+    ):
         self.recover_ic = MosRecoverIC(sym=symbol, md_type=self.md_type)
 
     def on_end_of_day(self):

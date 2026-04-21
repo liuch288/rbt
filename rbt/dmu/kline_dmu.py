@@ -102,8 +102,16 @@ class KlineDMU(DecisionMakingUnit):
         # 如果当前行情戳计入K线
         self.kline_open = last_price if self.kline_open is None else self.kline_open
         self.kline_close = last_price
-        self.kline_high = last_price if self.kline_high is None else max(self.kline_high, self.kline_close)
-        self.kline_low = last_price if self.kline_low is None else min(self.kline_low, self.kline_close)
+        self.kline_high = (
+            last_price
+            if self.kline_high is None
+            else max(self.kline_high, self.kline_close)
+        )
+        self.kline_low = (
+            last_price
+            if self.kline_low is None
+            else min(self.kline_low, self.kline_close)
+        )
         self.kline_volume = cumulative_volume - self.kline_init_volume
         self.kline_oi_diff = cumulative_oi - self.kline_init_oi
 
@@ -129,7 +137,7 @@ class KlineDMU(DecisionMakingUnit):
             self.kline_low = None
             self.kline_init_volume = cumulative_volume
             self.kline_init_oi = cumulative_oi
-            return res        
+            return res
 
         res = {
             "open": self.kline_open,
@@ -139,11 +147,9 @@ class KlineDMU(DecisionMakingUnit):
             "volume": self.kline_volume,
             "oi_diff": self.kline_oi_diff,
             "end_time": self.current_kline_end,
-            "completed": False
+            "completed": False,
         }
         return res
-
-
 
 
 # # 示例使用

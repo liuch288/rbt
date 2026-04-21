@@ -329,7 +329,9 @@ def recover_mo_core_dynamic(
     has_lv2_cur = "bid_px2" in cur_lob
 
     if has_lv2_last:
-        last_boundary_bid = 9999999 if last_lob["bid_px2"] == 0.0 else last_lob["bid_px2"]
+        last_boundary_bid = (
+            9999999 if last_lob["bid_px2"] == 0.0 else last_lob["bid_px2"]
+        )
         last_boundary_ask = 0 if last_lob["ask_px2"] == 0.0 else last_lob["ask_px2"]
     else:
         last_boundary_bid = last_lob["bid_px1"]
@@ -473,6 +475,7 @@ def recover_mo_core_dynamic(
 
 class MosRecoverIC(IndexCalculator):
     """市价单还原器。根据前后两帧订单簿和成交数据，利用优化求解还原出逐笔市价单（价格、方向、数量）。支持 lv1/lv2/auto 三种档位模式。"""
+
     # TODO: 需要合约参数 tick_size、hands，或通过 sym 自动查询
     def __init__(
         self,

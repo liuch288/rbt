@@ -8,7 +8,8 @@ from rbt.ic.index_calculator import IndexCalculator
 
 class OlsTrendIC(IndexCalculator):
     """OLS 线性回归趋势指标。在滑动窗口内拟合线性回归，输出斜率(coefficient)、截距、R²、MSE。支持 order=0（仅截距）和 order=1（含斜率）两种模式。"""
-    def __init__(self, window_size: int = 60, order:int=1):
+
+    def __init__(self, window_size: int = 60, order: int = 1):
         super().__init__(window_size)
         self.window_size = window_size
         self.x = np.arange(1, window_size + 1).reshape(-1, 1)
@@ -19,17 +20,16 @@ class OlsTrendIC(IndexCalculator):
             self.calculate = self.calculate_0
 
     def calculate_0(self, new_data: dict):
-        """修改这个函数，进行只有截距项而没有x的回归，返回值中coefficient固定为None
-        """
+        """修改这个函数，进行只有截距项而没有x的回归，返回值中coefficient固定为None"""
         # Ensure we have enough data points
         if len(self.data) < self.window_size:
             self.result = {}
             return
 
         all_data = pd.DataFrame(list(self.data) + [new_data])
-        
+
         # Calculate the mean of y
-        y = all_data[['value']].values
+        y = all_data[["value"]].values
         intercept = np.mean(y)
 
         # Calculate the Mean Squared Error (MSE)
@@ -48,7 +48,6 @@ class OlsTrendIC(IndexCalculator):
             "window_size": self.window_size,
         }
 
-
     def calculate_1(self, new_data: dict):
         """new_data should be a dict {"time": datetime.datetime, "value": float}
 
@@ -61,14 +60,14 @@ class OlsTrendIC(IndexCalculator):
             return
 
         all_data = pd.DataFrame(list(self.data) + [new_data])
-        
+
         # Calculate the time differences in seconds
         last_time = new_data["time"]
-        all_data['time_diff'] = (all_data['time'] - last_time).dt.total_seconds()
+        all_data["time_diff"] = (all_data["time"] - last_time).dt.total_seconds()
 
         # Prepare the X (time differences) and y (values) for regression
-        X = all_data[['time_diff']].values.reshape(-1, 1)
-        y = all_data[['value']].values.reshape(-1, 1)
+        X = all_data[["time_diff"]].values.reshape(-1, 1)
+        y = all_data[["value"]].values.reshape(-1, 1)
 
         # Fit the OLS model
         self.model.fit(X, y)
