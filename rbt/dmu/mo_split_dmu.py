@@ -7,7 +7,7 @@ class MoSplitDMU(DecisionMakingUnit):
     市价单拆分DMU，封装MosRecoverIC，对每个行情戳计算exec_before
     """
 
-    version = "v1"
+    version = "v0"
 
     def __init__(self, md_type: str = "auto"):
         super().__init__()

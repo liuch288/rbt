@@ -63,7 +63,7 @@ class Order(object):
 
 
 class BiquotePEU(PnlEstimateUnit):
-    version = "v2"
+    version = "v0"
 
     def __init__(
         self,
@@ -96,7 +96,7 @@ class BiquotePEU(PnlEstimateUnit):
         return f"{self.order_maintaining_time}_{self.lb}_{self.la}"
 
     def dependencies(self):
-        return ["MoSplitDMU_v1_auto"]
+        return ["MoSplitDMU_v0_auto"]
 
     def estimate(self, future_data) -> dict:
         n_rows = len(future_data)
@@ -104,7 +104,7 @@ class BiquotePEU(PnlEstimateUnit):
         times = future_data.index
         bid1_arr = future_data["bid_px1"].values
         ask1_arr = future_data["ask_px1"].values
-        exec_col = "MoSplitDMU_v1_auto__exec_before"
+        exec_col = "MoSplitDMU_v0_auto__exec_before"
         has_exec = exec_col in future_data.columns
         if has_exec:
             exec_arr = future_data[exec_col].values
@@ -112,8 +112,8 @@ class BiquotePEU(PnlEstimateUnit):
             exec_arr = None
 
         # 逐笔极值列（用于 must_not_exec 判定）
-        lowest_sell_col = "MoSplitDMU_v1_auto__lowest_sell_px"
-        highest_buy_col = "MoSplitDMU_v1_auto__highest_buy_px"
+        lowest_sell_col = "MoSplitDMU_v0_auto__lowest_sell_px"
+        highest_buy_col = "MoSplitDMU_v0_auto__highest_buy_px"
         has_mo_extremes = lowest_sell_col in future_data.columns
         if has_mo_extremes:
             lowest_sell_arr = future_data[lowest_sell_col].values
@@ -152,9 +152,7 @@ class BiquotePEU(PnlEstimateUnit):
             return {
                 "pnl": sell_order_price - buy_order_price,
                 "buy_order_executed": True,
-                "buy_order_exec_time": None,
                 "sell_order_executed": True,
-                "sell_order_exec_time": None,
             }
 
         # 预扫描逐笔极值，判断哪些单不可能通过逐笔成交
@@ -176,18 +174,14 @@ class BiquotePEU(PnlEstimateUnit):
             return {
                 "pnl": 0.0,
                 "buy_order_executed": False,
-                "buy_order_exec_time": None,
                 "sell_order_executed": False,
-                "sell_order_exec_time": None,
             }
 
         # 逐行核对是否成交
         inventory = 0
         pnl = 0.0
         buy_order_executed = False
-        buy_order_exec_time = None
         sell_order_executed = False
-        sell_order_exec_time = None
         buy_vol_remaining = 1
         sell_vol_remaining = 1
 
@@ -204,13 +198,11 @@ class BiquotePEU(PnlEstimateUnit):
                         inventory += buy_vol_remaining
                         pnl -= buy_vol_remaining * buy_order_price
                         buy_order_executed = True
-                        buy_order_exec_time = cur_time
                 if not sell_order_executed:
                     if cur_bid1 >= sell_order_price:
                         inventory -= sell_vol_remaining
                         pnl += sell_vol_remaining * sell_order_price
                         sell_order_executed = True
-                        sell_order_exec_time = cur_time
 
                 # 跳过下单行；must_exec / no_chance 的单不需要逐笔判定
                 if i > 0 and has_exec:
@@ -231,7 +223,6 @@ class BiquotePEU(PnlEstimateUnit):
                                     pnl -= buy_order_price * cur_exec
                                     if buy_vol_remaining <= 0:
                                         buy_order_executed = True
-                                        buy_order_exec_time = cur_time
                         # 卖单逐笔判定
                         if not sell_order_executed and not sell_must_exec and not sell_no_chance:
                             if mo_price >= sell_order_price:
@@ -246,7 +237,6 @@ class BiquotePEU(PnlEstimateUnit):
                                     pnl += sell_order_price * cur_exec
                                     if sell_vol_remaining <= 0:
                                         sell_order_executed = True
-                                        sell_order_exec_time = cur_time
                 if buy_order_executed and sell_order_executed:
                     break
 
@@ -265,7 +255,5 @@ class BiquotePEU(PnlEstimateUnit):
         return {
             "pnl": pnl,
             "buy_order_executed": buy_order_executed,
-            "buy_order_exec_time": buy_order_exec_time,
             "sell_order_executed": sell_order_executed,
-            "sell_order_exec_time": sell_order_exec_time,
         }
