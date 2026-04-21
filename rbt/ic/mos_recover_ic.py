@@ -502,20 +502,59 @@ class MosRecoverIC(IndexCalculator):
         else:
             self.mo_recover_func = recover_mo_core_dynamic
 
+    def _fallback_result(self, new_data):
+        """求解失败时的降级处理：用均价 round 到 tick_size，全量归为一笔"""
+        trade_size = new_data["trade_sz"]
+        if trade_size == 0:
+            return []
+        price = round(
+            round(new_data["trade_notional"] / trade_size / self.hands / self.tick_size)
+            * self.tick_size,
+            10,
+        )
+        last_mid = (self.last_lob["bid_px1"] + self.last_lob["ask_px1"]) / 2
+        if price <= self.last_lob["bid_px1"]:
+            side = "sell"
+        elif price >= self.last_lob["ask_px1"]:
+            side = "buy"
+        elif price < last_mid:
+            side = "sell"
+        else:
+            side = "buy"
+        return [{"side": side, "price": price, "volume": int(trade_size)}]
+
     def calculate(self, new_data):
         if self.last_lob is None:
             self.result = []
         else:
-            if self.last_lob.name.hour < 12 and new_data.name.hour > 12:
+            trade_size = new_data["trade_sz"]
+            if trade_size == 0:
+                self.result = []
+            elif trade_size == 1:
+                # 只有一手，直接从均价和盘口判断方向
+                price = new_data["trade_notional"] / self.hands
+                last_mid = (self.last_lob["bid_px1"] + self.last_lob["ask_px1"]) / 2
+                if price <= self.last_lob["bid_px1"]:
+                    side = "sell"
+                elif price >= self.last_lob["ask_px1"]:
+                    side = "buy"
+                elif price < last_mid:
+                    side = "sell"
+                else:
+                    side = "buy"
+                self.result = [{"side": side, "price": price, "volume": 1}]
+            elif self.last_lob.name.hour < 12 and new_data.name.hour > 12:
                 try:
                     self.result = self.mo_recover_func(
                         self.last_lob, new_data, self.tick_size, self.hands, True
                     )
                 except Exception as e:
-                    print(f"MosRecoverIC failed during market session transition: {e}")
-                    self.result = []
+                    self.result = self._fallback_result(new_data)
             else:
-                self.result = self.mo_recover_func(
-                    self.last_lob, new_data, self.tick_size, self.hands, True
-                )
+                try:
+                    self.result = self.mo_recover_func(
+                        self.last_lob, new_data, self.tick_size, self.hands, True
+                    )
+                except Exception as e:
+                    self.result = self._fallback_result(new_data)
         self.last_lob = new_data
