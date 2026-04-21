@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.22
+**版本：** 0.23
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -195,6 +195,12 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.23 (2026-04-22)
+- **合约信息扩充**: `instrument_info` 从 4 个国债期货品种扩展至 87 个期货品种，覆盖 CFFEX、SHFE、DCE、CZCE、INE、GFEX 全部交易所
+  - 每个品种包含 `name`（中文名）、`exchange`（交易所）、`tick_size`、`hands`（合约乘数）、`digits`（价格精度）
+  - 数据来源: openctp.cn
+- **代码格式化**: 全项目使用 black 格式化
 
 ### v0.22 (2026-04-17)
 - **跨日运行支持（on_end_of_day）**: `Unit` 基类新增 `on_end_of_day()` 钩子方法，默认空操作，子类按需重写以重置日终状态
