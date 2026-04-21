@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.23
+**版本：** 0.24
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -195,6 +195,20 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - progressbar2
 
 ## 更新日志
+
+### v0.24 (2026-04-22)
+- **BiquotePEU 性能优化**: `estimate()` 方法全面重写，消除 `iterrows` 瓶颈
+  - 循环前预提取 `bid_px1`、`ask_px1`、`exec_before` 为 numpy 数组，循环内通过下标直接访问
+  - 预扫描盘口极值：两单都穿价时直接返回，跳过整个循环
+  - 预扫描逐笔极值（`highest_buy_px`、`lowest_sell_px`）：盘口未穿且逐笔无匹配价格时跳过逐笔判定
+  - 逐笔判定逻辑 inline 化，移除 `Order` 类的方法调用和 dict 构造开销
+  - 移除 `exec_time` 返回字段
+  - 构造函数参数不再提供默认值，必须显式传入
+- **MoSplitDMU 增强**: `make_decision()` 新增 `highest_buy_px` 和 `lowest_sell_px` 两列，记录每行 exec_before 中的买卖极值价格（无成交时为 NaN），供 BiquotePEU 预判使用
+- **MosRecoverIC 优化与容错**:
+  - `trade_size == 1` 时跳过 cvxpy 求解，直接从均价和盘口判断方向
+  - 求解失败时降级处理（`_fallback_result`）：用均价 round 到 tick_size，全量归为一笔，不再崩溃或丢失数据
+  - 所有时段的求解异常均被捕获
 
 ### v0.23 (2026-04-22)
 - **合约信息扩充**: `instrument_info` 从 4 个国债期货品种扩展至 87 个期货品种，覆盖 CFFEX、SHFE、DCE、CZCE、INE、GFEX 全部交易所

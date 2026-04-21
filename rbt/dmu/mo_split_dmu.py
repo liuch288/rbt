@@ -30,6 +30,20 @@ class MoSplitDMU(DecisionMakingUnit):
 
     def make_decision(self, new_data, previous_result: dict = {}) -> dict:
         if self.recover_ic is None:
-            return {"exec_before": []}
+            return {"exec_before": [], "highest_buy_px": float("nan"), "lowest_sell_px": float("nan")}
         exec_before = self.recover_ic.update(new_data)
-        return {"exec_before": exec_before}
+        highest_buy_px = float("nan")
+        lowest_sell_px = float("nan")
+        for mo in exec_before:
+            px = mo["price"]
+            if mo["side"] == "buy":
+                if highest_buy_px != highest_buy_px or px > highest_buy_px:  # nan check
+                    highest_buy_px = px
+            elif mo["side"] == "sell":
+                if lowest_sell_px != lowest_sell_px or px < lowest_sell_px:  # nan check
+                    lowest_sell_px = px
+        return {
+            "exec_before": exec_before,
+            "highest_buy_px": highest_buy_px,
+            "lowest_sell_px": lowest_sell_px,
+        }
