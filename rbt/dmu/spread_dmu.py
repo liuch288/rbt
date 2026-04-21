@@ -8,7 +8,13 @@ class SpreadDMU(DecisionMakingUnit):
         super().__init__()
         self.tick_size = None
 
-    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
+    def register_contract_info(
+        self,
+        symbol: str,
+        tick_size: float = None,
+        hands: int = None,
+        digits: int = None,
+    ):
         self.tick_size = tick_size
 
     def make_decision(self, new_data, *args, **kwargs) -> dict:

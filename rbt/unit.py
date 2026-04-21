@@ -57,7 +57,13 @@ class Unit(object):
         """
         pass
 
-    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
+    def register_contract_info(
+        self,
+        symbol: str,
+        tick_size: float = None,
+        hands: int = None,
+        digits: int = None,
+    ):
         """注册合约信息
 
         Args:
@@ -72,4 +78,3 @@ class Unit(object):
             "hands": hands,
             "digits": digits,
         }
-

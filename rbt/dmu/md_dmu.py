@@ -13,7 +13,13 @@ class MdDMU(DecisionMakingUnit):
         self.variance_ic = VarianceIC(120)
         self.mean_ic = MeanIC(120)
 
-    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
+    def register_contract_info(
+        self,
+        symbol: str,
+        tick_size: float = None,
+        hands: int = None,
+        digits: int = None,
+    ):
         self.hands = hands
 
     def make_decision(self, new_data, *args, **kwargs) -> dict:

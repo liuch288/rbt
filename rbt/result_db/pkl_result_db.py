@@ -70,7 +70,9 @@ class PklResultDB(ResultDB):
                     factors = [factors]
                 # 使用前缀匹配：只要列名以输入的 factor 开头就保留
                 matching_columns = [
-                    col for col in data.columns if any(col.startswith(f) for f in factors)
+                    col
+                    for col in data.columns
+                    if any(col.startswith(f) for f in factors)
                 ]
                 if matching_columns:
                     return data[matching_columns]

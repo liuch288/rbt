@@ -50,7 +50,10 @@ class FsResultDB(ResultDB):
         )
 
     def save_data(
-        self, sym: str, date: datetime.date, new_data: pd.DataFrame,
+        self,
+        sym: str,
+        date: datetime.date,
+        new_data: pd.DataFrame,
         skip_existing: bool = False,
     ) -> None:
         """
@@ -73,9 +76,7 @@ class FsResultDB(ResultDB):
 
         # ts 不应作为普通列存在，应在 index 中
         if "ts" in new_data.columns:
-            raise ValueError(
-                "'ts' 不应作为列存在，应作为 DataFrame 的 index。"
-            )
+            raise ValueError("'ts' 不应作为列存在，应作为 DataFrame 的 index。")
 
         # 解析列名，提取因子名
         factor_names = set()
@@ -110,7 +111,9 @@ class FsResultDB(ResultDB):
             if factor_name in existing_factors:
                 continue
 
-            factor_cols = [col for col in new_data.columns if col.startswith(f"{factor_name}__")]
+            factor_cols = [
+                col for col in new_data.columns if col.startswith(f"{factor_name}__")
+            ]
             factor_df = new_data[factor_cols]
 
             self.store.save_factor(
@@ -157,7 +160,9 @@ class FsResultDB(ResultDB):
         if isinstance(factors, str):
             factors = [factors]
         # 前缀匹配筛选（与 PklResultDB 一致）
-        factors_to_load = [f for f in all_factors if any(f.startswith(factor) for factor in factors)]
+        factors_to_load = [
+            f for f in all_factors if any(f.startswith(factor) for factor in factors)
+        ]
 
         if not factors_to_load:
             return None

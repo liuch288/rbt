@@ -15,7 +15,7 @@ class OlsTrendDMU(DecisionMakingUnit):
 
     def get_param_str(self):
         return f"{self.order}_{self.window_size}"
-    
+
     def make_decision(self, new_data: dict, previous_result: dict = {}) -> dict:
         # Calculate the average of bid_px1 and ask_px1
         avg_price = (new_data["bid_px1"] + new_data["ask_px1"]) / 2

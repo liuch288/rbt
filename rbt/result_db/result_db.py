@@ -49,7 +49,10 @@ class ResultDB(abc.ABC):
 
     @abc.abstractmethod
     def save_data(
-        self, sym: str, date: datetime.date, new_data: pd.DataFrame,
+        self,
+        sym: str,
+        date: datetime.date,
+        new_data: pd.DataFrame,
         skip_existing: bool = False,
     ) -> None:
         """

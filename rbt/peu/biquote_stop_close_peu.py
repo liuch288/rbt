@@ -61,7 +61,13 @@ class BiquoteStopClosePEU(PnlEstimateUnit):
         self.tick_size = None
         self.digits = None
 
-    def register_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
+    def register_contract_info(
+        self,
+        symbol: str,
+        tick_size: float = None,
+        hands: int = None,
+        digits: int = None,
+    ):
         self.tick_size = tick_size
         self.digits = digits
 
@@ -79,13 +85,17 @@ class BiquoteStopClosePEU(PnlEstimateUnit):
         buy_order_price = round(
             init_md["bid_px1"] - (self.lb - 1) * self.tick_size, self.digits
         )
-        bid_vol_at_same_level = _get_volume_before(init_md, buy_order_price, "bid", self.tick_size)
+        bid_vol_at_same_level = _get_volume_before(
+            init_md, buy_order_price, "bid", self.tick_size
+        )
         buy_order = Order(buy_order_price, 1, 1, bid_vol_at_same_level)
         # ask
         sell_order_price = round(
             init_md["ask_px1"] + (self.la - 1) * self.tick_size, self.digits
         )
-        ask_vol_at_same_level = _get_volume_before(init_md, sell_order_price, "ask", self.tick_size)
+        ask_vol_at_same_level = _get_volume_before(
+            init_md, sell_order_price, "ask", self.tick_size
+        )
         sell_order = Order(sell_order_price, 1, -1, ask_vol_at_same_level)
 
         # 逐行核对是否成交

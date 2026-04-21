@@ -20,7 +20,13 @@ class Strategy(object):
         self.position_pnl_dmu_class = position_pnl_dmu_class
         self.contract_info = None
 
-    def set_contract_info(self, symbol: str, tick_size: float = None, hands: int = None, digits: int = None):
+    def set_contract_info(
+        self,
+        symbol: str,
+        tick_size: float = None,
+        hands: int = None,
+        digits: int = None,
+    ):
         """提前设置合约信息，后续注册的 unit 会自动获取"""
         self.contract_info = {
             "symbol": symbol,
@@ -96,7 +102,9 @@ class Strategy(object):
             for peu in self.peus:
                 peu.on_end_of_day()
 
-    def _run_single_day(self, cur_sym: str, cur_date, show_progress: bool = False, bgm: dict = None):
+    def _run_single_day(
+        self, cur_sym: str, cur_date, show_progress: bool = False, bgm: dict = None
+    ):
         """单日核心执行逻辑"""
         # STEP 1: 获取已有因子列表（轻量级检查）
         existed_factors = self.result_db.get_existing_factors(cur_sym, cur_date)
@@ -127,7 +135,9 @@ class Strategy(object):
             required_factors.update(peu.dependencies())
 
         if required_factors:
-            loaded_data = self.result_db.get_data(cur_sym, cur_date, factors=list(required_factors))
+            loaded_data = self.result_db.get_data(
+                cur_sym, cur_date, factors=list(required_factors)
+            )
         else:
             loaded_data = pd.DataFrame()
         if loaded_data is None:
@@ -136,7 +146,8 @@ class Strategy(object):
         # STEP 4.5: 检查所有 unit 的依赖是否已在 loaded_data 中
         for unit in list(new_dmus) + list(new_peus):
             missing = [
-                f for f in unit.dependencies()
+                f
+                for f in unit.dependencies()
                 if not any(col.startswith(f) for col in loaded_data.columns)
             ]
             if missing:

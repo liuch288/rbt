@@ -1,11 +1,13 @@
 from .index_calculator import IndexCalculator
 
+
 class MinMaxIC(IndexCalculator):
     """全局最小值/最大值追踪器。持续记录历史最小和最大值，result 为 {"min": ..., "max": ...}。"""
+
     def __init__(self):
         super().__init__(1)
-        self.min_value = float('inf')  # 初始化为正无穷大
-        self.max_value = float('-inf')  # 初始化为负无穷大
+        self.min_value = float("inf")  # 初始化为正无穷大
+        self.max_value = float("-inf")  # 初始化为负无穷大
 
     def calculate(self, new_data):
         if new_data < self.min_value:
@@ -18,8 +20,8 @@ class MinMaxIC(IndexCalculator):
 
     def reset(self):
         super().reset()
-        self.min_value = float('inf')  # 重置为正无穷大
-        self.max_value = float('-inf')  # 重置为负无穷大
+        self.min_value = float("inf")  # 重置为正无穷大
+        self.max_value = float("-inf")  # 重置为负无穷大
 
 
 # if __name__ == "__main__":
@@ -46,7 +48,7 @@ class MinMaxIC(IndexCalculator):
 #             expected_max = 20
 #             for value in data:
 #                 self.ic.calculate(value)
-            
+
 #             self.assertEqual(self.ic.min_value, expected_min)
 #             self.assertEqual(self.ic.max_value, expected_max)
 #             self.assertEqual(self.ic.result, {"min": expected_min, "max": expected_max})
@@ -55,7 +57,7 @@ class MinMaxIC(IndexCalculator):
 #             data = [10, 5, 20]
 #             for value in data:
 #                 self.ic.calculate(value)
-            
+
 #             self.ic.reset()
 #             self.assertEqual(self.ic.min_value, float('inf'))
 #             self.assertEqual(self.ic.max_value, float('-inf'))
@@ -67,7 +69,7 @@ class MinMaxIC(IndexCalculator):
 #             expected_max = 10
 #             for value in data:
 #                 self.ic.calculate(value)
-            
+
 #             self.assertEqual(self.ic.min_value, expected_min)
 #             self.assertEqual(self.ic.max_value, expected_max)
 #             self.assertEqual(self.ic.result, {"min": expected_min, "max": expected_max})
