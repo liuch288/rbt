@@ -1,3 +1,5 @@
+import numpy as np
+
 from .pnl_estimate_unit import PnlEstimateUnit
 
 
@@ -31,6 +33,7 @@ def _get_volume_before_from_values(px_arr, sz_arr, order_price, side, tick_size)
 class Order(object):
     """
     direction: [1] buy; [-1] sell
+    保留供 BiquoteClosePEU / BiquoteStopClosePEU 使用
     """
 
     def __init__(
@@ -42,19 +45,10 @@ class Order(object):
         self.volume_before_this_order = volume_before_this_order
 
     def check_execution(self, market_order: dict) -> dict:
-        """
-        market_order: {'side': 'sell', 'price': 102.09, 'volume': 14}
-        是否成交判定不需要关心市价单方向，只要成交价格在订单之外，则忽略；相同或更优，则考虑。
-        即，如果我后面的人在相同或更优的价位上发生了成交，则应该考虑这些成交量。
-        return: {"volume": int, "cash_flow": float} cash_flow还需要乘以hands才能得到实际notional
-        """
-        # 如果当前订单已经完成，则直接返回0现金流
         if self.volume <= 0:
             return {"volume": 0, "cash_flow": 0.0}
-        # 如果市价单价格更差（例如本order为买单，新的成交价格更高），则无视
         if (market_order["price"] - self.price) * self.direction > 0:
             return {"volume": 0, "cash_flow": 0.0}
-        # 如果市价单价格与本单价格相同，则都考虑，不管方向（如果本单是买单，那理论上不应该有市价买单，除非本单已经被fill）
         mo_vol = market_order["volume"]
         if mo_vol <= self.volume_before_this_order:
             self.volume_before_this_order -= mo_vol
@@ -69,7 +63,7 @@ class Order(object):
 
 
 class BiquotePEU(PnlEstimateUnit):
-    version = "v1"
+    version = "v2"
 
     def __init__(
         self,
@@ -102,7 +96,7 @@ class BiquotePEU(PnlEstimateUnit):
         return f"{self.order_maintaining_time}_{self.lb}_{self.la}"
 
     def dependencies(self):
-        return ["MoSplitDMU_v0_auto"]
+        return ["MoSplitDMU_v1_auto"]
 
     def estimate(self, future_data) -> dict:
         n_rows = len(future_data)
@@ -110,12 +104,20 @@ class BiquotePEU(PnlEstimateUnit):
         times = future_data.index
         bid1_arr = future_data["bid_px1"].values
         ask1_arr = future_data["ask_px1"].values
-        exec_col = "MoSplitDMU_v0_auto__exec_before"
+        exec_col = "MoSplitDMU_v1_auto__exec_before"
         has_exec = exec_col in future_data.columns
         if has_exec:
-            exec_arr = future_data[exec_col].values  # object array of lists
+            exec_arr = future_data[exec_col].values
         else:
             exec_arr = None
+
+        # 逐笔极值列（用于 must_not_exec 判定）
+        lowest_sell_col = "MoSplitDMU_v1_auto__lowest_sell_px"
+        highest_buy_col = "MoSplitDMU_v1_auto__highest_buy_px"
+        has_mo_extremes = lowest_sell_col in future_data.columns
+        if has_mo_extremes:
+            lowest_sell_arr = future_data[lowest_sell_col].values
+            highest_buy_arr = future_data[highest_buy_col].values
 
         start_time = times[0]
 
@@ -130,18 +132,54 @@ class BiquotePEU(PnlEstimateUnit):
         buy_order_price = round(
             bid_px_vals[0] - (self.lb - 1) * self.tick_size, self.digits
         )
-        bid_vol_before = _get_volume_before_from_values(
+        buy_vol_before = _get_volume_before_from_values(
             bid_px_vals, bid_sz_vals, buy_order_price, "bid", self.tick_size
         )
-        buy_order = Order(buy_order_price, 1, 1, bid_vol_before)
 
         sell_order_price = round(
             ask_px_vals[0] + (self.la - 1) * self.tick_size, self.digits
         )
-        ask_vol_before = _get_volume_before_from_values(
+        sell_vol_before = _get_volume_before_from_values(
             ask_px_vals, ask_sz_vals, sell_order_price, "ask", self.tick_size
         )
-        sell_order = Order(sell_order_price, 1, -1, ask_vol_before)
+
+        # 预扫描盘口极值，判断哪些单必定成交
+        buy_must_exec = ask1_arr.min() <= buy_order_price
+        sell_must_exec = bid1_arr.max() >= sell_order_price
+
+        # 如果两单都必定成交，直接按挂单价成交，不用进循环
+        if buy_must_exec and sell_must_exec:
+            return {
+                "pnl": sell_order_price - buy_order_price,
+                "buy_order_executed": True,
+                "buy_order_exec_time": None,
+                "sell_order_executed": True,
+                "sell_order_exec_time": None,
+            }
+
+        # 预扫描逐笔极值，判断哪些单不可能通过逐笔成交
+        buy_no_chance = False
+        sell_no_chance = False
+        if has_mo_extremes and not buy_must_exec and n_rows > 1:
+            with np.errstate(all="ignore"):
+                min_sell_px = np.nanmin(lowest_sell_arr[1:])
+            if np.isnan(min_sell_px) or min_sell_px > buy_order_price:
+                buy_no_chance = True
+        if has_mo_extremes and not sell_must_exec and n_rows > 1:
+            with np.errstate(all="ignore"):
+                max_buy_px = np.nanmax(highest_buy_arr[1:])
+            if np.isnan(max_buy_px) or max_buy_px < sell_order_price:
+                sell_no_chance = True
+
+        # 如果两单都不可能成交（盘口没穿 + 逐笔也没机会），直接返回
+        if (not buy_must_exec and buy_no_chance) and (not sell_must_exec and sell_no_chance):
+            return {
+                "pnl": 0.0,
+                "buy_order_executed": False,
+                "buy_order_exec_time": None,
+                "sell_order_executed": False,
+                "sell_order_exec_time": None,
+            }
 
         # 逐行核对是否成交
         inventory = 0
@@ -150,8 +188,8 @@ class BiquotePEU(PnlEstimateUnit):
         buy_order_exec_time = None
         sell_order_executed = False
         sell_order_exec_time = None
-        cur_bid1 = bid1_arr[0]
-        cur_ask1 = ask1_arr[0]
+        buy_vol_remaining = 1
+        sell_vol_remaining = 1
 
         for i in range(n_rows):
             cur_bid1 = bid1_arr[i]
@@ -163,36 +201,52 @@ class BiquotePEU(PnlEstimateUnit):
                 # 盘口价格判定成交
                 if not buy_order_executed:
                     if cur_ask1 <= buy_order_price:
-                        inventory += buy_order.volume
-                        pnl -= buy_order.volume * buy_order_price
+                        inventory += buy_vol_remaining
+                        pnl -= buy_vol_remaining * buy_order_price
                         buy_order_executed = True
                         buy_order_exec_time = cur_time
                 if not sell_order_executed:
                     if cur_bid1 >= sell_order_price:
-                        inventory -= sell_order.volume
-                        pnl += sell_order.volume * sell_order_price
+                        inventory -= sell_vol_remaining
+                        pnl += sell_vol_remaining * sell_order_price
                         sell_order_executed = True
                         sell_order_exec_time = cur_time
 
-                # 跳过下单行的 exec_before，从后续行开始判定
+                # 跳过下单行；must_exec / no_chance 的单不需要逐笔判定
                 if i > 0 and has_exec:
                     for mo in exec_arr[i]:
-                        if not buy_order_executed:
-                            res = buy_order.check_execution(mo)
-                            if res["volume"] > 0:
-                                inventory += res["volume"]
-                                pnl += res["cash_flow"]
-                                if buy_order.volume <= 0:
-                                    buy_order_executed = True
-                                    buy_order_exec_time = cur_time
-                        if not sell_order_executed:
-                            res = sell_order.check_execution(mo)
-                            if res["volume"] > 0:
-                                inventory -= res["volume"]
-                                pnl += res["cash_flow"]
-                                if sell_order.volume <= 0:
-                                    sell_order_executed = True
-                                    sell_order_exec_time = cur_time
+                        mo_price = mo["price"]
+                        mo_vol = mo["volume"]
+                        # 买单逐笔判定
+                        if not buy_order_executed and not buy_must_exec and not buy_no_chance:
+                            if mo_price <= buy_order_price:
+                                if mo_vol <= buy_vol_before:
+                                    buy_vol_before -= mo_vol
+                                else:
+                                    mo_vol_left = mo_vol - buy_vol_before
+                                    buy_vol_before = 0
+                                    cur_exec = min(buy_vol_remaining, mo_vol_left)
+                                    buy_vol_remaining -= cur_exec
+                                    inventory += cur_exec
+                                    pnl -= buy_order_price * cur_exec
+                                    if buy_vol_remaining <= 0:
+                                        buy_order_executed = True
+                                        buy_order_exec_time = cur_time
+                        # 卖单逐笔判定
+                        if not sell_order_executed and not sell_must_exec and not sell_no_chance:
+                            if mo_price >= sell_order_price:
+                                if mo_vol <= sell_vol_before:
+                                    sell_vol_before -= mo_vol
+                                else:
+                                    mo_vol_left = mo_vol - sell_vol_before
+                                    sell_vol_before = 0
+                                    cur_exec = min(sell_vol_remaining, mo_vol_left)
+                                    sell_vol_remaining -= cur_exec
+                                    inventory -= cur_exec
+                                    pnl += sell_order_price * cur_exec
+                                    if sell_vol_remaining <= 0:
+                                        sell_order_executed = True
+                                        sell_order_exec_time = cur_time
                 if buy_order_executed and sell_order_executed:
                     break
 
