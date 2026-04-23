@@ -1,4 +1,4 @@
-from .constants import instrument_info
+from market_specs import get_info as _ms_get_info
 
 
 def get_instrument_info(instrument: str):
@@ -7,11 +7,7 @@ def get_instrument_info(instrument: str):
         tick_size = 0.01 if type_ == "STOCK" else 0.001
         digits = 2 if type_ == "STOCK" else 3
         return {"tick_size": tick_size, "hands": 100, "digits": digits}
-    if len(instrument) > 2:
-        instrument = instrument[:-4].upper()
-    if instrument in instrument_info.keys():
-        return instrument_info[instrument]
-    return None
+    return _ms_get_info(instrument)
 
 
 def get_asset_type(instrument: str):

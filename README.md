@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.25
+**版本：** 0.26
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -193,8 +193,14 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - scipy
 - scikit-learn
 - progressbar2
+- market-specs
 
 ## 更新日志
+
+### v0.26 (2026-04-23)
+- **合约信息外部化**: 移除本地 `instrument_info` 字典，改为通过 `market-specs` 包获取合约参数（tick_size、hands、digits 等）
+  - `get_instrument_info()` 对期货品种委托 `market_specs.get_info()`，股票代码逻辑不变
+  - 新增 `market-specs` 为 install_requires 依赖
 
 ### v0.25 (2026-04-23)
 - **MdDMU 精简**: 移除非客观衍生指标（`mid_smo`、`mean`、`std`、`quantile`）及对应的 `SmoothIC`、`VarianceIC`、`MeanIC` 依赖，仅保留直接来自行情的客观数据输出
