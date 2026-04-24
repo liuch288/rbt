@@ -197,6 +197,11 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 
 ## 更新日志
 
+### v0.27 (2026-04-24)
+- **PositionPnlDMU 可选加入**: `Strategy.__init__` 的 `position_pnl_dmu_class` 参数默认值改为 `None`
+  - 传 `None` 时 `_run_single_day` 不再自动追加 `PositionPnlDMU`，跳过 position pnl 相关因子计算
+  - 传 `PositionPnlDMU`（或省略）保持原有行为
+
 ### v0.26 (2026-04-23)
 - **合约信息外部化**: 移除本地 `instrument_info` 字典，改为通过 `market-specs` 包获取合约参数（tick_size、hands、digits 等）
   - `get_instrument_info()` 对期货品种委托 `market_specs.get_info()`，股票代码逻辑不变
