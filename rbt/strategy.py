@@ -12,7 +12,7 @@ from .util import get_instrument_info
 
 
 class Strategy(object):
-    def __init__(self, position_pnl_dmu_class=PositionPnlDMU) -> None:
+    def __init__(self, position_pnl_dmu_class=None) -> None:
         self.dmus = []
         self.recalculate_dmu_names = []
         self.peus = []
@@ -116,8 +116,9 @@ class Strategy(object):
                 new_dmus.append(dmu)
             elif dmu.name in self.recalculate_dmu_names:
                 new_dmus.append(dmu)
-        # 后置平台DMU
-        new_dmus.append(self.position_pnl_dmu_class())
+        # 后置平台DMU（可选）
+        if self.position_pnl_dmu_class is not None:
+            new_dmus.append(self.position_pnl_dmu_class())
 
         # STEP 3: 加入需要计算的PEU
         new_peus = []
