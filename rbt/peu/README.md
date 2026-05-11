@@ -250,7 +250,7 @@ result = peu.estimate(future_data)
 | PnlEstimateUnit | v0 | 基类 |
 | BtsSimplePEU | v1 | 简单买后卖 |
 | SimpleBiquotePEU | v1 | 简单双边 |
-| FixedHoldingPEU | v1 | 固定持有期限 |
+| FixedHoldingPEU | v0 | 固定持有期限，使用 MdDMU 中间价 |
 | BiquotePEU | v0 | 完整双边报价 |
 | BiquoteClosePEU | v0 | 带平仓 |
 | BiquoteStopClosePEU | v0 | 带止损 |

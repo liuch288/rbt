@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.26
+**版本：** 0.28
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -196,6 +196,13 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - market-specs
 
 ## 更新日志
+
+### v0.28 (2026-05-12)
+- **FixedHoldingPEU 改用 MdDMU 中间价**: 依赖 MdDMU 提供的 `mid` 字段，返回值从百分比改为绝对价差
+  - `pnl` → `mid_long_pnl`, `long_return` → `mid_short_pnl`
+  - 新增 `cross_long_pnl`, `cross_short_pnl`
+  - 波幅计算改用 `MdDMU_v0__mid` 的最高/最低值
+  - version 从 v1 改为 v0
 
 ### v0.27 (2026-04-24)
 - **PositionPnlDMU 可选加入**: `Strategy.__init__` 的 `position_pnl_dmu_class` 参数默认值改为 `None`
