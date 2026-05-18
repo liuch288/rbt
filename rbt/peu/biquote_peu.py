@@ -5,6 +5,11 @@ from .pnl_estimate_unit import PnlEstimateUnit
 
 def _get_volume_before_from_values(px_arr, sz_arr, order_price, side, tick_size):
     """根据订单簿计算排在本订单前面的挂单量（直接接收值数组，避免 Series 索引开销）"""
+    # 挂单价超出盘口最优价（lb<=0 / la<=0），本单排在最前面
+    if (side == "bid" and order_price >= px_arr[0]) or (
+        side == "ask" and (px_arr[0] == 0.0 or order_price <= px_arr[0])
+    ):
+        return 0
     # 探测可用档位数
     levels = 1
     for i in range(len(px_arr) - 1, 0, -1):
