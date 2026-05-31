@@ -6,13 +6,15 @@
 
 依赖 MdDMU 提供的中间价 (mid)。
 
-计算指标（均为绝对价差）：
+计算指标（均为绝对价差，单位：原始价格单位）：
 1. mid_long_pnl: 中间价做多 = 最后中间价 - 第一中间价
 2. mid_short_pnl: 中间价做空 = 第一中间价 - 最后中间价
 3. cross_long_pnl: 对手价做多 = 最后bid - 第一个ask
 4. cross_short_pnl: 对手价做空 = 第一个bid - 最后ask
-5. max_up_vol: 周期内mid最高值 - 第一中间价
-6. max_down_vol: 第一中间价 - 周期内mid最低值
+5. mid_max_up: 中间价最大上行 = 周期内mid最高值 - 第一中间价
+6. mid_max_down: 中间价最大下行 = 第一中间价 - 周期内mid最低值
+7. cross_max_up: 对手价最大上行 = 周期内bid最高值 - 第一个ask
+8. cross_max_down: 对手价最大下行 = 第一个bid - 周期内ask最低值
 
 中间价来自 MdDMU 的 mid 字段
 最高价 = mid 最大值
@@ -67,16 +69,20 @@ class FixedHoldingPEU(PnlEstimateUnit):
         mid_short_pnl = first_mid_px - last_mid_px
         cross_long_pnl = last_bid - first_ask
         cross_short_pnl = first_bid - last_ask
-        max_up_vol = period_high - first_mid_px
-        max_down_vol = first_mid_px - period_low
+        mid_max_up = period_high - first_mid_px
+        mid_max_down = first_mid_px - period_low
+        cross_max_up = future_data["bid_px1"].max() - first_ask
+        cross_max_down = first_bid - future_data["ask_px1"].min()
 
         return {
             "mid_long_pnl": mid_long_pnl,
             "mid_short_pnl": mid_short_pnl,
             "cross_long_pnl": cross_long_pnl,
             "cross_short_pnl": cross_short_pnl,
-            "max_up_vol": max_up_vol,
-            "max_down_vol": max_down_vol,
+            "mid_max_up": mid_max_up,
+            "mid_max_down": mid_max_down,
+            "cross_max_up": cross_max_up,
+            "cross_max_down": cross_max_down,
         }
 
     def get_param_str(self) -> str:

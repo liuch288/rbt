@@ -1,6 +1,6 @@
 # RBT (Rule-Based Trading)
 
-**版本：** 0.28
+**版本：** 0.29
 
 RBT 是一个轻量级、模块化的规则型量化交易策略回测框架。
 
@@ -196,6 +196,9 @@ data = db.get_data("AAPL", datetime.date(2026, 3, 18), factors=["price_", "vol"]
 - market-specs
 
 ## 更新日志
+
+### v0.29 (2026-05-31)
+- **FixedHoldingPEU**: 重命名 `max_up_vol`/`max_down_vol` → `mid_max_up`/`mid_max_down`，新增对手价最大上行/下行指标 `cross_max_up`/`cross_max_down`（基于 bid/ask 极值计算）
 
 ### v0.28 (2026-05-12)
 - **FixedHoldingPEU 改用 MdDMU 中间价**: 依赖 MdDMU 提供的 `mid` 字段，返回值从百分比改为绝对价差
